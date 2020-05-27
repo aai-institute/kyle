@@ -5,13 +5,13 @@ stages:
   - package
 
 tox:
-  stage: "test"
+  stage: tox
   script:
     - pip install tox
     - tox
 
 package:
-  stage: "package"
+  stage: package
   script:
     - pip install setuptools wheel
     - python setup.py sdist bdist_wheel
