@@ -1,0 +1,21 @@
+image: "python:3.8-buster"
+
+variables:
+  GIT_SSL_NO_VERIFY: "true"
+
+tox:
+  stage: "test"
+  script:
+    - pip install tox
+    - tox
+
+package:
+  stage: "package"
+  script:
+    - pip install setuptools wheel
+    - python setup.py sdist bdist_wheel
+  artifacts:
+    paths:
+      - dist/*.whl
+
+
