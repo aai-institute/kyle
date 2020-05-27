@@ -1,7 +1,8 @@
 image: "python:3.8-buster"
 
-variables:
-  GIT_SSL_NO_VERIFY: "true"
+stages:
+  - tox
+  - package
 
 tox:
   stage: "test"
