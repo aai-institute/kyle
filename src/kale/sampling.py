@@ -4,10 +4,16 @@ from typing import Sequence
 import numpy as np
 import pyro
 import pyro.distributions as dist
+import torch
 from torch import tensor
 
 
 class SimplexAutomorphism(ABC):
+    """
+    Base class for all simplex automorphisms
+
+    :param num_classes: The dimension of the simplex vector. This equals 1 + (dimension of the simplex as manifold)
+    """
     def __init__(self, num_classes: int):
         self.num_classes = num_classes
 
@@ -33,23 +39,38 @@ class IdentitySimplexAutomorphism(SimplexAutomorphism):
 
 
 class ScalingSimplexAutomorphism(SimplexAutomorphism):
-    def __init__(self, num_classes: int, scaling_parameters: Sequence[float]):
+    """
+    An automorphism that scales each axis/class with the corresponding parameter and normalizes the result such
+    tha it sums 1. If all scaling parameters are equal, this corresponds to the identity operation.
+
+    :param num_classes:
+    :param scaling_parameters: array with positive numbers, one per class
+    """
+    def __init__(self, num_classes: int, scaling_parameters: np.ndarray):
         assert (l_def := len(scaling_parameters)) == num_classes, \
             f"scaling parameters has wrong number of classes {l_def}"
         self.scaling_parameters = scaling_parameters
         super().__init__(num_classes)
 
     def _transform(self, x: np.ndarray) -> np.ndarray:
-        x = np.array([x[i] * scaling_par for i, scaling_par in enumerate(self.scaling_parameters)])
+        x = np.multiply(x, self.scaling_parameters)
         return x/x.sum()
 
 
 class FakeClassifier:
+    """
+    A fake classifier for sampling ground truth and class probabilities vectors,
+    see https://gitlab.aai.lab/tl/calibration/texts for more details.
+    By default instantiated with uniform distributions and trivial simplex automorphisms, these can be adjusted
+    after instantiation.
+
+    :param num_classes: Number of ground truth classes, must be larger than 1
+    """
     def __init__(self, num_classes: int):
         assert num_classes > 1, f"{self.__class__.__name__} requires at least two classes"
         self.num_classes = num_classes
-        self.predicted_class_categorical = dist.Categorical(tensor([1.0] * self.num_classes))
-        self.dirichlet_dists = [dist.Dirichlet(tensor([1 / self.num_classes] * self.num_classes))] * self.num_classes
+        self.predicted_class_categorical = dist.Categorical(torch.ones(self.num_classes))
+        self.dirichlet_dists = [dist.Dirichlet(torch.ones(self.num_classes) / self.num_classes)] * self.num_classes
         self.simplex_automorphisms = [IdentitySimplexAutomorphism(self.num_classes)] * self.num_classes
 
     def _unit_vector(self, i: int):
