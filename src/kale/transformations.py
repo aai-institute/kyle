@@ -113,10 +113,10 @@ class PowerLawSimplexAutomorphism(SimplexAutomorphism):
 
     |
     | *Intuition*:
-    | If exponents[i] is larger than exponents[j], then the output will be more shifted
-    towards the j-th direction than the i-th. If all exponents are equal to some number s, than s>1 means a shift
-    towards the boundary of the simplex whereas 0<s<1 means a shift towards the center and s < 0 results in an
-    "antipodal shift".
+
+    If exponents[j] < exponents[i], then the output will be more shifted towards the j-th direction
+    than the i-th. If all exponents are equal to some number s, then s>1 means a shift towards the boundary
+    of the simplex whereas 0<s<1 means a shift towards the center and s < 0 results in an "antipodal shift".
 
     :param exponents: numpy array of shape (num_classes, )
     """
