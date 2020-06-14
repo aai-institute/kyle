@@ -70,7 +70,7 @@ class FakeClassifier:
         assert num_classes > 1, f"{self.__class__.__name__} requires at least two classes"
         self.num_classes = num_classes
         self.predicted_class_categorical = dist.Categorical(torch.ones(self.num_classes))
-        self.dirichlet_dists = [dist.Dirichlet(torch.ones(self.num_classes) / self.num_classes)] * self.num_classes
+        self.dirichlet_dists = [dist.Dirichlet(torch.ones(self.num_classes))] * self.num_classes
         self.simplex_automorphisms = [IdentitySimplexAutomorphism(self.num_classes)] * self.num_classes
 
     def _unit_vector(self, i: int):
@@ -107,8 +107,10 @@ class FakeClassifier:
         predicted_class = pyro.sample("predicted_class", self.predicted_class_categorical).item()
         k = pyro.sample("k", self.dirichlet_dists[predicted_class]).numpy()
         probabilities_vector = 1/2 * (k + self._unit_vector(predicted_class))
-        ground_truth_label = self.simplex_automorphisms[predicted_class].transform(k).argmax()
-        return ground_truth_label, probabilities_vector
+        transformed_k = self.simplex_automorphisms[predicted_class].transform(k)
+        gt_categorical = dist.Categorical(tensor(transformed_k))
+        gt_label = pyro.sample("gt_categorical", gt_categorical)
+        return gt_label, probabilities_vector
 
     def get_sample_arrays(self, n_samples: int):
         """
