@@ -2,10 +2,10 @@ from abc import ABC, abstractmethod
 from typing import Sequence
 
 import numpy as np
-import pyro
-import pyro.distributions as dist
-import torch
-from torch import tensor
+
+
+def _in_simplex(num_classes, x: np.ndarray):
+    return len(x) == num_classes and np.isclose(sum(x), 1) and all(x >= 0) and all(x <= 1)
 
 
 class SimplexAutomorphism(ABC):
@@ -17,18 +17,15 @@ class SimplexAutomorphism(ABC):
     def __init__(self, num_classes: int):
         self.num_classes = num_classes
 
-    def _in_simplex(self, x: np.ndarray):
-        return len(x) == self.num_classes and np.isclose(sum(x), 1) and all(x >= 0) and all(x <= 1)
-
     @abstractmethod
     def _transform(self, x: np.ndarray) -> np.ndarray:
         pass
 
     def transform(self, x: np.ndarray):
-        if not self._in_simplex(x):
+        if not _in_simplex(self.num_classes, x):
             raise ValueError(f"Input has to be from a {self.num_classes - 1} dimensional simplex")
         result = self._transform(x)
-        if not self._in_simplex(result):
+        if not _in_simplex(self.num_classes, result):
             raise Exception(f"Bad implementation: Output has to be from a {self.num_classes - 1} dimensional simplex")
         return result
 
@@ -77,19 +74,20 @@ class FakeClassifier:
     def __init__(self, num_classes: int):
         assert num_classes > 1, f"{self.__class__.__name__} requires at least two classes"
         self.num_classes = num_classes
-        self.predicted_class_categorical = dist.Categorical(torch.ones(self.num_classes))
-        self.dirichlet_dists = [dist.Dirichlet(torch.ones(self.num_classes))] * self.num_classes
+        self.predicted_class_weights: np.ndarray = np.ones(self.num_classes) / self.num_classes
+        self.alpha = np.ones((self.num_classes, self.num_classes))
         self.simplex_automorphisms = [IdentitySimplexAutomorphism(self.num_classes)] * self.num_classes
+        self._rng = np.random.default_rng()
 
     def _unit_vector(self, i: int):
         e_i = np.zeros(self.num_classes)
         e_i[i] = 1
         return e_i
 
-    def with_predicted_class_categorical(self, weights: Sequence[float]):
-        assert len(weights) == self.num_classes, \
-            f"Expected {self.num_classes} probabilities of categorical distribution"
-        self.predicted_class_categorical = dist.Categorical(tensor(weights))
+    def with_predicted_class_weights(self, weights: np.ndarray):
+        if not _in_simplex(self.num_classes, weights):
+            raise ValueError(f"Input has to be from a {self.num_classes - 1} dimensional simplex")
+        self.predicted_class_weights = weights
         return self
 
     def with_simplex_automorphisms(self, simplex_automorphisms: Sequence[SimplexAutomorphism]):
@@ -100,24 +98,28 @@ class FakeClassifier:
         self.simplex_automorphisms = simplex_automorphisms
         return self
 
-    def with_dirichlet_distributions(self, dirichlet_dists: Sequence[dist.Dirichlet]):
-        assert len(dirichlet_dists) == self.num_classes, f"Expected {self.num_classes} dirichlet_distributions"
-        for i, dirichlet_dist in enumerate(dirichlet_dists):
-            if not dirichlet_dist.shape()[0] == self.num_classes:
-                raise ValueError(f"dirichlet distribution {i} has wrong shape: {dirichlet_dist.shape()}")
-        self.dirichlet_dists = dirichlet_dists
+    def with_alpha(self, alpha: np.ndarray):
+        """
+        Parameters of the predicted class dirichlet distributions. alpha[i,j] corresponds to the j_th weight of the
+        i_th distribution.
+
+        :param alpha: array of shape (n_classes, n_classes) with semi-positive entries
+        :return: self
+        """
+        assert alpha.shape == (self.num_classes, self.num_classes), f"Wrong input shape: {alpha.shape}"
+        self.alphas = alpha
         return self
 
     # TODO or not TODO: this could be vectorized, removing the need for get_sample_array
-    #   However, this would complicate the code, as self.dirichlet_dists[predicted_class] is not vectorized.
-    #   Since performance is not critical here, maybe vectorization would be an overkill
+    #   However, this would complicate the code, as the selections of the appropriate alpha and simplex automorphism
+    #   are not vectorized. Since performance is not critical here, maybe vectorization can be postponed
     def get_sample(self):
-        predicted_class = pyro.sample("predicted_class", self.predicted_class_categorical).item()
-        k = pyro.sample("k", self.dirichlet_dists[predicted_class]).numpy()
+        predicted_class = self._rng.choice(self.num_classes, 1, p=self.predicted_class_weights)[0]
+        alpha = self.alpha[predicted_class]
+        k = self._rng.dirichlet(alpha)
         confidence_vector = ShiftingSimplexAutomorphism(self._unit_vector(predicted_class)).transform(k)
-        gt_distribution = self.simplex_automorphisms[predicted_class].transform(confidence_vector)
-        gt_categorical = dist.Categorical(tensor(gt_distribution))
-        gt_label = pyro.sample("gt_categorical", gt_categorical).item()
+        gt_label_weights = self.simplex_automorphisms[predicted_class].transform(confidence_vector)
+        gt_label = self._rng.choice(self.num_classes, 1, p=gt_label_weights)[0]
         return gt_label, confidence_vector
 
     def get_sample_arrays(self, n_samples: int):

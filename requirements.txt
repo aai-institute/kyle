@@ -1,6 +1,4 @@
 numpy==1.18.4
-torch==1.5.0
-pyro-ppl==1.3.1
 pandas==1.0.3
 scikit-learn==0.23.1
 netcal==1.0
