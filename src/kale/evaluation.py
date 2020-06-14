@@ -1,3 +1,6 @@
+from typing import Union, Sequence
+
+import matplotlib.pyplot as plt
 import netcal.metrics
 import numpy as np
 from sklearn.metrics import accuracy_score
@@ -6,6 +9,8 @@ from kale.utils import safe_accuracy_score
 
 
 class EvalStats:
+    TOP_CLASS_LABEL = "top_class"
+
     """
     Class for computing evaluation statistics of classifiers, including calibration metrics
 
@@ -63,3 +68,27 @@ class EvalStats:
             cur_pred_labels = self.y_pred[top_class_confidence_bins == confidence_bin]
             accuracies_per_bin.append(safe_accuracy_score(cur_gt_labels, cur_pred_labels))
         return np.arange(self.bins) / self.bins, np.array(accuracies_per_bin)
+
+    def plot_reliability_curves(self, class_labels: Sequence[Union[int, str]]):
+        plt.figure()
+        plt.title(f"Reliability curves")
+        plt.xlabel("confidence")
+        plt.ylabel("ground truth probability")
+        plt.axis("equal")
+        plt.plot(np.linspace(0, 1), np.linspace(0, 1), label="perfect calibration")
+        for class_label in class_labels:
+            if isinstance(class_label, int):
+                label = f"class {class_label}"
+                hist = self.marginal_reliability_hist(class_label)
+            elif class_label == self.TOP_CLASS_LABEL:
+                label = "prediction"
+                hist = self.top_class_reliability_hist()
+            else:
+                raise ValueError(f"Unknown class label: {class_label}")
+            plt.plot(*hist, marker="o", label=label)
+        axes = plt.gca()
+        axes.set_xlim([0, 1])
+        axes.set_ylim([0, 1])
+        plt.legend(loc="best")
+        plt.show()
+
