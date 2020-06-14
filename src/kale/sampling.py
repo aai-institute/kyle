@@ -107,3 +107,20 @@ class FakeClassifier:
         ground_truth_label = self.simplex_automorphisms[predicted_class].transform(k).argmax()
         return ground_truth_label, probabilities_vector
 
+    # TODO or not TODO: this could be vectorized
+    def get_sample_arrays(self, n_samples: int):
+        """
+        Get arrays with ground truth and predicted probabilities
+
+        :param n_samples:
+        :return: tuple of arrays of shapes (n_samples,), (n_samples, n_classes)
+        """
+        ground_truth_labels = []
+        probabilities_vectors = []
+        for _ in range(n_samples):
+            gt_label, proba_vector = self.get_sample()
+            ground_truth_labels.append(gt_label)
+            probabilities_vectors.append(proba_vector)
+        return np.array(ground_truth_labels), np.array(probabilities_vectors)
+
+
