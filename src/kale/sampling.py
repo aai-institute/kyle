@@ -68,7 +68,7 @@ class ShiftingSimplexAutomorphism(SimplexAutomorphism):
 class FakeClassifier:
     """
     A fake classifier for sampling ground truth and class probabilities vectors,
-    see https://gitlab.aai.lab/tl/calibration/texts for more details.
+    see `Fake Classifiers <https://gitlab.aai.lab/tl/calibration/texts/-/blob/master/Fake%20Classifiers.tm>`_ for more details.
     By default instantiated with uniform distributions and trivial simplex automorphisms, these can be adjusted
     after instantiation.
 
@@ -79,7 +79,7 @@ class FakeClassifier:
         self.num_classes = num_classes
         self.predicted_class_categorical = dist.Categorical(torch.ones(self.num_classes))
         self.dirichlet_dists = [dist.Dirichlet(torch.ones(self.num_classes))] * self.num_classes
-        self.simplex_automorphisms = [ShiftingSimplexAutomorphism(self._unit_vector(i)) for i in range(self.num_classes)]
+        self.simplex_automorphisms = [IdentitySimplexAutomorphism(self.num_classes)] * self.num_classes
 
     def _unit_vector(self, i: int):
         e_i = np.zeros(self.num_classes)
@@ -114,11 +114,11 @@ class FakeClassifier:
     def get_sample(self):
         predicted_class = pyro.sample("predicted_class", self.predicted_class_categorical).item()
         k = pyro.sample("k", self.dirichlet_dists[predicted_class]).numpy()
-        probabilities_vector = ShiftingSimplexAutomorphism(self._unit_vector(predicted_class)).transform(k)
-        transformed_k = self.simplex_automorphisms[predicted_class].transform(k)
-        gt_categorical = dist.Categorical(tensor(transformed_k))
+        confidence_vector = ShiftingSimplexAutomorphism(self._unit_vector(predicted_class)).transform(k)
+        gt_distribution = self.simplex_automorphisms[predicted_class].transform(confidence_vector)
+        gt_categorical = dist.Categorical(tensor(gt_distribution))
         gt_label = pyro.sample("gt_categorical", gt_categorical).item()
-        return gt_label, probabilities_vector
+        return gt_label, confidence_vector
 
     def get_sample_arrays(self, n_samples: int):
         """
