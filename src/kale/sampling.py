@@ -100,6 +100,9 @@ class FakeClassifier:
         self.dirichlet_dists = dirichlet_dists
         return self
 
+    # TODO or not TODO: this could be vectorized, removing the need for get_sample_array
+    #   However, this would complicate the code, as self.dirichlet_dists[predicted_class] is not vectorized.
+    #   Since performance is not critical here, maybe vectorization would be an overkill
     def get_sample(self):
         predicted_class = pyro.sample("predicted_class", self.predicted_class_categorical).item()
         k = pyro.sample("k", self.dirichlet_dists[predicted_class]).numpy()
@@ -107,7 +110,6 @@ class FakeClassifier:
         ground_truth_label = self.simplex_automorphisms[predicted_class].transform(k).argmax()
         return ground_truth_label, probabilities_vector
 
-    # TODO or not TODO: this could be vectorized
     def get_sample_arrays(self, n_samples: int):
         """
         Get arrays with ground truth and predicted probabilities
