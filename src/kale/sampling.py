@@ -43,18 +43,26 @@ class ScalingSimplexAutomorphism(SimplexAutomorphism):
     An automorphism that scales each axis/class with the corresponding parameter and normalizes the result such
     tha it sums 1. If all scaling parameters are equal, this corresponds to the identity operation.
 
-    :param num_classes:
     :param scaling_parameters: array with positive numbers, one per class
     """
-    def __init__(self, num_classes: int, scaling_parameters: np.ndarray):
-        assert (l_def := len(scaling_parameters)) == num_classes, \
-            f"scaling parameters has wrong number of classes {l_def}"
+    def __init__(self, scaling_parameters: np.ndarray):
         self.scaling_parameters = scaling_parameters
-        super().__init__(num_classes)
+        super().__init__(len(scaling_parameters))
 
     def _transform(self, x: np.ndarray) -> np.ndarray:
         x = np.multiply(x, self.scaling_parameters)
         return x/x.sum()
+
+
+class ShiftingSimplexAutomorphism(SimplexAutomorphism):
+    def __init__(self, shifting_vector: np.ndarray):
+        self.shifting_vector = shifting_vector
+        self._norm_factor = 1 + self.shifting_vector.sum()
+        super().__init__(len(shifting_vector))
+
+    def _transform(self, x: np.ndarray) -> np.ndarray:
+        x = x + self.shifting_vector
+        return x/self._norm_factor
 
 
 class FakeClassifier:
@@ -71,7 +79,7 @@ class FakeClassifier:
         self.num_classes = num_classes
         self.predicted_class_categorical = dist.Categorical(torch.ones(self.num_classes))
         self.dirichlet_dists = [dist.Dirichlet(torch.ones(self.num_classes))] * self.num_classes
-        self.simplex_automorphisms = [IdentitySimplexAutomorphism(self.num_classes)] * self.num_classes
+        self.simplex_automorphisms = [ShiftingSimplexAutomorphism(self._unit_vector(i)) for i in range(self.num_classes)]
 
     def _unit_vector(self, i: int):
         e_i = np.zeros(self.num_classes)
@@ -106,10 +114,10 @@ class FakeClassifier:
     def get_sample(self):
         predicted_class = pyro.sample("predicted_class", self.predicted_class_categorical).item()
         k = pyro.sample("k", self.dirichlet_dists[predicted_class]).numpy()
-        probabilities_vector = 1/2 * (k + self._unit_vector(predicted_class))
+        probabilities_vector = ShiftingSimplexAutomorphism(self._unit_vector(predicted_class)).transform(k)
         transformed_k = self.simplex_automorphisms[predicted_class].transform(k)
         gt_categorical = dist.Categorical(tensor(transformed_k))
-        gt_label = pyro.sample("gt_categorical", gt_categorical)
+        gt_label = pyro.sample("gt_categorical", gt_categorical).item()
         return gt_label, probabilities_vector
 
     def get_sample_arrays(self, n_samples: int):
