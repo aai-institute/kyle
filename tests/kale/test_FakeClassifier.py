@@ -1,4 +1,4 @@
-from kale.sampling.fake_clf import SufficientlyConfidentFC
+from kale.sampling.fake_clf import SufficientlyConfidentFC, DirichletFC
 
 
 def test_SufficientlyConfidentFC():
@@ -10,3 +10,10 @@ def test_SufficientlyConfidentFC():
     assert confidences.shape == (n_classes,)
     assert ground_truth_array.shape == (n_samples, )
     assert class_proba_array.shape == (n_samples, n_classes)
+
+
+def test_DirichletFC():
+    faker = DirichletFC(3)
+    ground_truth, class_proba = faker.get_sample()
+    assert ground_truth in [0, 1, 2]
+    assert len(class_proba) == 3
