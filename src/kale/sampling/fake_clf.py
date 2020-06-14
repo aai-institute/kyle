@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Sequence, List, Tuple
+from typing import Sequence, List, Tuple, Union
 
 import numpy as np
 
@@ -66,7 +66,9 @@ class SufficientlyConfidentFC(FakeClassifier):
             raise ValueError("Invalid alpha parameters for dirichlet distribution")
         self.alpha[component] = distribution_alpha
 
-    def set_simplex_automorphism(self, component: int, aut: SimplexAutomorphism):
+    def set_simplex_automorphism(self, component: int, aut: Union[SimplexAutomorphism, None]):
+        if aut is None:
+            aut = IdentitySimplexAutomorphism(self.num_classes)
         if aut.num_classes != self.num_classes:
             raise ValueError(f"{aut} has wrong number of classes: {aut.num_classes}")
         self.simplex_automorphisms[component] = aut
@@ -103,7 +105,9 @@ class DirichletFC(FakeClassifier):
             raise ValueError(f"Wrong shape of alpha: {alpha.shape}")
         self.alpha = alpha
 
-    def set_simplex_automorphism(self, aut: SimplexAutomorphism) -> None:
+    def set_simplex_automorphism(self, aut: Union[SimplexAutomorphism, None]) -> None:
+        if aut is None:
+            aut = IdentitySimplexAutomorphism(self.num_classes)
         if aut.num_classes != self.num_classes:
             raise ValueError(f"{aut} has wrong number of classes: {aut.num_classes}")
         self.simplex_automorphism = aut
@@ -139,7 +143,7 @@ class SufficientlyConfidentFCBuilder:
         self.predicted_class_weights = weights
         return self
 
-    def with_simplex_automorphisms(self, simplex_automorphisms: Sequence[SimplexAutomorphism]):
+    def with_simplex_automorphisms(self, simplex_automorphisms: Sequence[Union[SimplexAutomorphism, None]]):
         assert len(simplex_automorphisms) == self.num_classes, f"Expected {self.num_classes} simplex automorphisms"
         for i, aut in enumerate(simplex_automorphisms):
             self._fc.set_simplex_automorphism(i, aut)

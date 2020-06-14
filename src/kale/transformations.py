@@ -12,7 +12,6 @@ class SimplexAutomorphism(ABC):
 
     :param num_classes: The dimension of the simplex vector. This equals 1 + (dimension of the simplex as manifold)
     """
-
     def __init__(self, num_classes: int):
         self.num_classes = num_classes
 
@@ -59,8 +58,8 @@ class SingleComponentSimplexAutomorphism(SimplexAutomorphism):
 
 class ScalingSimplexAutomorphism(SimplexAutomorphism):
     """
-    An automorphism that scales each axis/class with the corresponding parameter and normalizes the result such
-    tha it sums 1. If all scaling parameters are equal, this corresponds to the identity operation.
+    An automorphism that scales each axis/class with the corresponding parameter and normalizes the result.
+    If all scaling parameters are equal, this corresponds to the identity operation.
 
     :param scaling_parameters: array with positive numbers, one per class
     """
@@ -93,10 +92,38 @@ class MaxComponentSimplexAutomorphism(SimplexAutomorphism):
 
 
 class ShiftingSimplexAutomorphism(SimplexAutomorphism):
+    """
+    An automorphism resulting from adding a fixed vector with positive entries to the input and normalizing the result
+
+    :param shifting_vector: numpy array with positive entries of shape (num_classes, )
+    """
     def __init__(self, shifting_vector: np.ndarray):
         self.shifting_vector = shifting_vector
         super().__init__(len(shifting_vector))
 
     def _transform(self, x: np.ndarray) -> np.ndarray:
         x = x + self.shifting_vector
+        return x / x.sum()
+
+
+class PowerLawSimplexAutomorphism(SimplexAutomorphism):
+    """
+    An automorphism resulting from taking elementwise powers of the inputs with fixed exponents
+    and normalizing the result.
+
+    |
+    | *Intuition*:
+    | If exponents[i] is larger than exponents[j], then the output will be more shifted
+    towards the j-th direction than the i-th. If all exponents are equal to some number s, than s>1 means a shift
+    towards the boundary of the simplex whereas 0<s<1 means a shift towards the center and s < 0 results in an
+    "antipodal shift".
+
+    :param exponents: numpy array of shape (num_classes, )
+    """
+    def __init__(self, exponents: np.ndarray):
+        self.exponents = exponents
+        super().__init__(len(exponents))
+
+    def _transform(self, x: np.ndarray) -> np.ndarray:
+        x = np.float_power(x, self.exponents)
         return x / x.sum()
