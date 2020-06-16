@@ -5,7 +5,7 @@ import netcal.metrics
 import numpy as np
 from sklearn.metrics import accuracy_score
 
-from kale.utils import safe_accuracy_score
+from kale.util import safe_accuracy_score
 
 
 class EvalStats:
