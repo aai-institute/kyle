@@ -1,23 +1,17 @@
-_NAME_TOKEN = "name"
-_METADATA_TOKEN = "metadata"
+from enum import Enum
 
-DISEASE_NAME_TO_COST_DICT = {
-    "healthy": 0,
-    "cold": 1,
-    "flue": 1,
-    "coronavirus": 2,
-    "lung cancer": 3,
-}
 
-DISEASE_NAME_TO_LABEL_DICT = {
-    "healthy": 0,
-    "cold": 1,
-    "flue": 2,
-    "coronavirus": 3,
-    "lung cancer": 4,
-}
+class Disease(str, Enum):
+    healthy = "healthy"
+    cold = "cold"
+    flue = "flue"
+    coronavirus = "coronavirus"
+    lung_cancer = "lung_cancer"
 
-assert sorted(DISEASE_NAME_TO_LABEL_DICT.keys()) == sorted(DISEASE_NAME_TO_COST_DICT.keys())
 
-DISEASE_LABEL_TO_NAME_DICT = {v: k for k, v in DISEASE_NAME_TO_LABEL_DICT.items()}
-DISEASE_LABEL_TO_COST_DICT = {v: DISEASE_NAME_TO_COST_DICT[k] for k, v in DISEASE_NAME_TO_LABEL_DICT.items()}
+class TreatmentCost(float, Enum):
+    healthy = 0
+    cold = 1
+    flue = 1
+    coronavirus = 2
+    lung_cancer = 3

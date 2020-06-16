@@ -1,248 +1,138 @@
-import json
-import logging
-import os
-import re
-from abc import ABC, abstractmethod
-from pprint import pprint
-from typing import TypeVar, Generic, Dict, Any, Iterator, Tuple, Type, Union, List, Pattern
+import math
+from typing import Dict, List, Iterator
 
-from kale.constants import _NAME_TOKEN, _METADATA_TOKEN
-from kale.util import getFirstDuplicate, updateDictByListingValuesAndNormalize
+import numpy as np
+from pydantic import BaseModel, validator
 
-log = logging.getLogger(__name__)
-
-T = TypeVar("T")
-S = TypeVar("S")
+from kale.constants import TreatmentCost, Disease
+from kale.util import get_first_duplicate, iter_param_combinations
 
 
-# Unfortunately, making a generic abstract Mapping type work properly currently seems to be impossible in intellij/python
-# therefore we mimic the mapping type ourselves by using plain Generic
-class HashableStruct(Generic[T], ABC):
-    """
-    Base class for hashable mappings of strings to objects of a determined type
-    """
-    def __eq__(self, other):
-        if other.__class__ == self.__class__:
-            return self.toJSON() == other.toJSON()
-        return False
+class Patient(BaseModel):
+    name: str
+    disease: str
+    delta_dict: Dict[str, float]
+    confidence_dict: Dict[str, float]
+
+    # the init is purely for convenience in the IDE
+    def __init__(self, name: str, delta_dict: Dict[str, float], confidence_dict: Dict[str, float], disease: str):
+        """
+
+        :param name:
+        :param disease: ground truth for disease
+        :param delta_dict: mapping disease_name -> expected life gain (if sick with that disease and treated)
+        :param confidence_dict: mapping disease_name -> confidence of being sick
+        """
+        super().__init__(name=name, disease=disease, delta_dict=delta_dict, confidence_dict=confidence_dict)
+
+    @validator("confidence_dict")
+    def _confidence_validator(cls, v: Dict[str, float], values):
+        if not set(v.keys()).issubset(values["delta_dict"].keys()):
+            raise KeyError(f"Patient {values['name']}: Missing deltas for classes: {v.keys()}")
+        if not np.isclose(sum(list(v.values())), 1.0):
+            raise ValueError(f"")
+        if not values["disease"] in v.keys():
+            raise KeyError(f"Patient {values['name']}: Missing confidence for ground truth disease: {v}")
+        return v
+
+    def expected_life_gain(self, treated_disease: str):
+        if treated_disease not in self.confidence_dict.keys():
+            return 0.0
+        return self.confidence_dict[treated_disease] * self.delta_dict[treated_disease]
+
+    def true_life_gain(self, treated_disease: str):
+        if self.disease == treated_disease:
+            return self.delta_dict[treated_disease]
+        return 0.0
 
     def __hash__(self):
-        return hash(self.toJSON())
+        return hash(self.json())
 
-    @abstractmethod
-    def toDict(self) -> Dict[str, Any]:
+
+class PatientCollection(BaseModel):
+    identifier: int
+    patients: List[Patient]
+
+    # the init is purely for convenience in the IDE
+    def __init__(self, patients: List[Patient], identifier: int):
+        super().__init__(patients=patients, identifier=identifier)
+
+    @validator("patients")
+    def _patients_validator(cls, patients: List[Patient], values):
+        duplicate_name = get_first_duplicate([patient.name for patient in patients])
+        if duplicate_name is not None:
+            raise ValueError(f"PatientCollection {values['identifier']}: Duplicate patient name: {duplicate_name}")
+        return patients
+
+    def __iter__(self) -> Iterator[Patient]:
+        return self.patients.__iter__()
+
+    # TODO or not TODO: this is a suboptimal brute-force approach
+    def optimal_treatment(self, max_cost=None, treatment_cost=TreatmentCost):
         """
-        This method is primarily used for serializing hashable structs. It should return a mapping
-        from strings to either objects of the same type as the struct's values or to the struct's metadata
+        Finding the assignment patient->treated_disease that maximizes the total *expected* life gain for all patients.
+        The ground truth for patients' diseases is not taken into account here
 
-        :return: a dict representation of the struct object
+        :param max_cost: maximal cost of all prescribed treatments
+        :param treatment_cost: enum representing treated_disease costs
+        :return: tuple (treatment_dict, expected_life_gain, total_cost) where treatment_dict
+            is a dict mapping patients to the disease to be treated for
         """
-        pass
+        if max_cost is None:
+            max_cost = math.inf
 
-    @abstractmethod
-    def __getitem__(self, item: str) -> T:
-        pass
+        treated_disease_options: Dict[Patient, List[str]] = {}
+        optimal_treatment_dict: Dict[Patient, str] = {}
+        for patient in self:
+            treated_disease_options[patient] = list(patient.confidence_dict.keys())
+            optimal_treatment_dict[patient] = Disease.healthy.value  # initialize by recommending no treated_disease
 
-    @abstractmethod
-    def __iter__(self) -> Iterator[str]:
-        pass
+        optimal_life_gain: float = -math.inf
+        optimal_treatment_cost: float = 0.0
+        for treatment_dict in iter_param_combinations(treated_disease_options):
+            cost = 0
+            expected_life_gain = 0
+            for pat, treated_disease in treatment_dict.items():
+                cost += treatment_cost[treated_disease].value
+                if cost > max_cost:  # no need to continue the inner loop
+                    break
+                expected_life_gain += pat.expected_life_gain(treated_disease)
+            if cost > max_cost or expected_life_gain < optimal_life_gain:
+                continue
 
-    def keys(self):
-        return self.__iter__()
+            optimal_life_gain = expected_life_gain
+            optimal_treatment_dict = treatment_dict
+            optimal_treatment_cost = cost
 
-    def values(self) -> Iterator[T]:
-        return (self[k] for k in self.keys())
+        return optimal_treatment_dict, optimal_life_gain, optimal_treatment_cost
 
-    def items(self) -> Iterator[Tuple[str, T]]:
-        return zip(self.keys(), self.values())
-
-    def toJSON(self):
+    def expected_life_gain(self, treatment_dict: Dict[Patient, str]) -> float:
         """
-        :return: the serialized object as json string
-        """
-        return json.dumps(self, default=lambda o: o.toDict(), sort_keys=True)
+        Expected value for the life gain due to the treated diseases based on the patients' disease confidences
 
-    def saveAsJSON(self, path: str):
-        """
-        persist the JSON serialization as file
-
-        :param path: file-path that will contain the JSON serialization
-        """
-        os.makedirs(os.path.abspath(os.path.dirname(path)), exist_ok=True)
-        log.info(f"Saving {self.__class__.__name__} to {path}")
-        with open(path, 'w') as f:
-            json.dump(self, f, default=lambda o: o.toDict(), sort_keys=True)
-
-    def show(self):
-        """
-        pretty print the JSON serialization
-        """
-        pprint(json.loads(self.toJSON()))
-
-
-class NamedStruct(HashableStruct[T], ABC):
-    """
-    Base class for hashable structs that are named and contain metadata.
-    """
-    def __init__(self, name: str, metadata: Dict[str, Any] = None):
-        self.name = name
-        self.metadata = metadata if metadata is not None else {}
-
-    @classmethod
-    @abstractmethod
-    def _instantiateFromDict(cls: Type[T], name: str, nameValuesDict: Dict[str, Union[str, Dict]]) -> T:
-        pass
-
-    @abstractmethod
-    def _toDict(self: T) -> Dict[str, T]:
-        """
-        This should return a mapping entryName -> entry for all entries of the named struct
-        (excluding the obligatory entries "name" and "metadata")
-        """
-        pass
-
-    def toDict(self) -> Dict[str, Any]:
-        d = self._toDict().copy()
-        d[_NAME_TOKEN] = self.name
-        d[_METADATA_TOKEN] = self.metadata
-        return d
-
-    @classmethod
-    def fromJSON(cls: Type[S], pathOrDict: Union[str, dict]) -> S:
-        """
-        Deserialize a saved json to an an instance of the given class
-
-        :param pathOrDict: path to a json file or dict (the latter would typically be a result of json.load)
+        :param treatment_dict: dict assigning treated diseases to all patients in the collection
+            (its keys may form a superset of the collection)
         :return:
         """
-        if isinstance(pathOrDict, dict):
-            d = pathOrDict
-        else:
-            with open(pathOrDict, 'rb') as f:
-                d = json.load(f)
-        metadata = d.pop(_METADATA_TOKEN)
-        name = str(d.pop(_NAME_TOKEN))
-        assert isinstance(metadata, dict), f"Cannot deserialise json: invalid metadata entry: {metadata}"
-        instance = cls._instantiateFromDict(name, d)
-        instance.metadata = metadata
-        return instance
+        return sum([patient.expected_life_gain(treatment_dict[patient]) for patient in self])
 
-    def __iter__(self):
-        return self._toDict().__iter__()
-
-    def __getitem__(self, item: str):
-        return self._toDict()[item]
-
-
-NamedStructType = TypeVar("NamedStructType", bound=NamedStruct)
-
-
-# TODO: in python 3.8 it is possible to access generic types at runtime. Therefore the collection no longer
-#  needs to be abstract as we can implement _instantiateFromDict along the lines of
-#     @classmethod
-#     def _instantiateFromDict(cls: T[NamedStructType], name: str, nameValuesDict: Dict[str, Union[str, Dict]]) -> T:
-#         namedStructs = [NamedStructType.fromJSON(v) for v in nameValuesDict.values()]
-#         return cls(name, *namedStructs)
-class NamedStructCollection(NamedStruct[NamedStructType], ABC):
-    """
-    collection of :class:`NamedStruct` which itself has a name
-    """
-
-    def __init__(self, name: str, *namedStructs: NamedStruct, metadata: Dict[str, Any] = None):
-        super().__init__(name, metadata=metadata)
-        self._nameToNamedStruct = self._dictFromNamedStructs(*namedStructs)
-
-    def _toDict(self):
-        return self._nameToNamedStruct
-
-    def drop(self, structNames: Union[str, List[str]]) -> __qualname__:
+    def true_life_gain(self, treatment_dict: Dict[Patient, str]) -> float:
         """
-        remove :class:`NamedStruct` by their name from the collection
+        True value for the life gain due to the treated diseases based on the patients' disease ground truths
 
-        :param structNames: list of :class:`NamedStruct` to drop
-        :return: :class:`NamedStructCollection`
+        :param treatment_dict: dict assigning treated diseases to all patients in the collection
+            (its keys may form a superset of the collection)
+        :return:
         """
-        if isinstance(structNames, str):
-            structNames = [structNames]
-        missingStructNames = set(structNames).difference(set(self.keys()))
-        if missingStructNames:
-            raise ValueError(f"Cannot drop entries that were not present: {missingStructNames}")
-        for structName in structNames:
-            self._nameToNamedStruct.pop(structName)
-        return self.__class__(self.name, *list(self.values()), metadata=self.metadata)
+        return sum([patient.true_life_gain(treatment_dict[patient]) for patient in self])
 
-    def getSubset(self, structNames: List[Union[str, Pattern]]) -> __qualname__:
+    def treatment_cost(self, treatment_dict: Dict[Patient, str], treatment_cost=TreatmentCost) -> float:
         """
-        create a :class:`NamedStructCollection` that only contains the specified :class:`NamedStruct`
+        Total cost of the assigned treatments
 
-        :param structNames: list of :class:`NamedStruct` that you want to keep.
-            The names can also be provided as regular expression (e.g. ``re.compile("pattern.*")``), which will keep all :class:`NamedStruct` that match this pattern.
-        :return: :class:`NamedStructCollection`
+        :param treatment_dict: dict assigning treated diseases to all patients in the collection
+            (its keys may form a superset of the collection)
+        :param treatment_cost: enum representing treated_disease costs
+        :return:
         """
-        if not isinstance(structNames, list):
-            structNames = [structNames]
-        structNames = structNames
-
-        namedStructsToKeep = []
-        for structName in structNames:
-            if isinstance(structName, Pattern):
-                for name in self.keys():
-                    if re.match(structName, name):
-                        namedStructsToKeep.append(self._nameToNamedStruct[name])
-            else:
-                namedStruct = self._nameToNamedStruct.get(structName)
-                if namedStruct:
-                    namedStructsToKeep.append(namedStruct)
-        return self.__class__(self.name, *namedStructsToKeep, metadata=self.metadata)
-
-    @staticmethod
-    def _dictFromNamedStructs(*namedStructs: NamedStruct) -> Dict[str, NamedStruct]:
-        duplicateName = getFirstDuplicate([s.name for s in namedStructs])
-        if duplicateName is not None:
-            raise ValueError(f"Found duplicate name in input sequence: {duplicateName}")
-
-        result = {}
-        for struct in namedStructs:
-            if struct.name in [_METADATA_TOKEN, _NAME_TOKEN]:
-                raise ValueError(f"Forbidden struct name: {struct.name}")
-            result[struct.name] = struct
-        return result
-
-    def merge(self, *namedStructCollections: 'NamedStructCollection'):
-        """
-        Merges the current struct collection with the given ones. The merge strategy is the following:
-
-           1) This merge only adds new named structs to the collection, thus it is of the type 'discard'.
-
-           2) Metadata dictionaries are merged through the inbuilt update method (i.e. merge of type 'replace')
-
-           3) The set of the structCollections' names is merged together to a single string
-
-        :param namedStructCollections: :class:`NamedStructCollection`
-        :return: instance of the the current object's class
-        """
-        if not namedStructCollections:
-            return self
-        namedStructCollections = (self, ) + namedStructCollections
-
-        metaDataDicts = []
-        mergedStructs = set()
-        mergedStructNames = set()
-        mergedNames = set()
-        for namedStructCollection in namedStructCollections:
-            if namedStructCollection.__class__ != self.__class__:
-                raise Exception(f"cannot merge with object of incompatible class: {namedStructCollection.__class__.__name__}")
-            metaDataDicts.append(namedStructCollection.metadata)
-            newNamedStructs = {struct for struct in namedStructCollection.values() if struct.name not in mergedStructNames}
-
-            mergedStructs = mergedStructs.union(newNamedStructs)
-            mergedStructNames = mergedStructNames.union({struct.name for struct in newNamedStructs})
-            mergedNames.add(namedStructCollection.name)
-        if len(mergedNames) == 1:
-            mergedName = self.name
-        else:
-            mergedName = f"merge_of:[{','.join(sorted(mergedNames))}]"
-        result = self.__class__(mergedName, *mergedStructs)
-
-        result.metadata = updateDictByListingValuesAndNormalize(metaDataDicts)
-        return result
+        return sum([treatment_cost[treatment_dict[patient]] for patient in self])
