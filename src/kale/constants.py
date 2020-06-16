@@ -5,7 +5,7 @@ class Disease(str, Enum):
     healthy = "healthy"
     cold = "cold"
     flu = "flu"
-    bronchitis = "coronavirus"
+    bronchitis = "bronchitis"
     lung_cancer = "lung_cancer"
 
 
