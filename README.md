@@ -11,11 +11,12 @@ and documentation.
 Before pushing your changes to the remote it is often useful to execute `tox` locally in order to
 detect mistakes early on.
 
+The library dependencies are separated from the additional dependencies for development.
 We strongly suggest to use some form of virtual environment for working with the library. E.g. with conda:
 ```shell script
 conda create -n kale python=3.8
 conda activate kale
-pip install -r requirements.txt
+pip install -r requirements.txt -r requirements-dev.txt
 ```
 
 ### Testing and packaging
