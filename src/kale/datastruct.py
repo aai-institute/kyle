@@ -33,8 +33,8 @@ class Patient(BaseModel):
     def _confidence_validator(cls, v: Dict[str, float], values):
         if not set(v.keys()).issubset(values["delta_dict"].keys()):
             raise KeyError(f"Patient {values['name']}: Missing deltas for classes: {v.keys()}")
-        if not np.isclose(sum(list(v.values())), 1.0):
-            raise ValueError(f"")
+        if not np.isclose(sum(v.values()), 1.0):
+            raise ValueError(f"Patient {values['name']}: Confidences do not sum to 1")
         if not values["disease"] in v.keys():
             raise KeyError(f"Patient {values['name']}: Missing confidence for ground truth disease: {v}")
         return v
