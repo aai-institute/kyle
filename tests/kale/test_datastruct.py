@@ -32,7 +32,7 @@ def patient_collection2(pat1, pat3):
     return PatientCollection(patients=[pat1, pat3], identifier=0)
 
 
-def test_Patient(pat1):
+def test_Patient(pat1, pat2):
     assert pat1.name == "John"
     assert pat1.disease == "cold"
     assert pat1.true_life_gain(Disease.healthy) == 0.0
@@ -41,6 +41,10 @@ def test_Patient(pat1):
     assert pat1.expected_life_gain(Disease.healthy) == 0.0
     assert pat1.expected_life_gain(Disease.lung_cancer) == 0.0
     assert pat1.expected_life_gain(Disease.cold) == 0.7 * 3
+    assert pat1.uuid != pat2.uuid
+    assert hash(pat1) != hash(pat2)
+    with pytest.raises(TypeError):
+        pat1.name = "New Name"
 
 
 def test_PatientCollection_basics(patient_collection1):

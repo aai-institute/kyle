@@ -1,8 +1,9 @@
 import math
 from typing import Dict, List, Iterator
+from uuid import UUID, uuid1
 
 import numpy as np
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, Field
 
 from kale.constants import TreatmentCost, Disease
 from kale.util import get_first_duplicate, iter_param_combinations
@@ -13,8 +14,11 @@ class Patient(BaseModel):
     disease: str
     delta_dict: Dict[str, float]
     confidence_dict: Dict[str, float]
+    uuid: UUID = Field(default_factory=uuid1)
 
-    # the init is purely for convenience in the IDE
+    class Config:
+        allow_mutation = False
+
     def __init__(self, name: str, delta_dict: Dict[str, float], confidence_dict: Dict[str, float], disease: str):
         """
 
@@ -46,7 +50,7 @@ class Patient(BaseModel):
         return 0.0
 
     def __hash__(self):
-        return hash(self.json())
+        return hash(self.uuid)
 
 
 class PatientCollection(BaseModel):
