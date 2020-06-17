@@ -6,19 +6,19 @@ from kale.datastruct import Patient, PatientCollection
 
 @pytest.fixture
 def pat1():
-    return Patient(name="John", delta_dict={Disease.healthy: 0, Disease.cold: 3},
+    return Patient(name="John", treatment_effect_dict={Disease.healthy: 0, Disease.cold: 3},
                    confidence_dict={Disease.healthy: 0.3, Disease.cold: 0.7}, disease=Disease.cold)
 
 
 @pytest.fixture
 def pat2():
-    return Patient(name="Jane", delta_dict={Disease.healthy: 0, Disease.lung_cancer: 10},
+    return Patient(name="Jane", treatment_effect_dict={Disease.healthy: 0, Disease.lung_cancer: 10},
                    confidence_dict={Disease.healthy: 0.2, Disease.lung_cancer: 0.8}, disease=Disease.healthy)
 
 
 @pytest.fixture
 def pat3():
-    return Patient(name="Jackson", delta_dict={Disease.healthy: 0, Disease.lung_cancer: 10},
+    return Patient(name="Jackson", treatment_effect_dict={Disease.healthy: 0, Disease.lung_cancer: 10},
                    confidence_dict={Disease.healthy: 0.8, Disease.lung_cancer: 0.2}, disease=Disease.lung_cancer)
 
 
@@ -41,6 +41,7 @@ def test_Patient(pat1, pat2):
     assert pat1.expected_life_gain(Disease.healthy) == 0.0
     assert pat1.expected_life_gain(Disease.lung_cancer) == 0.0
     assert pat1.expected_life_gain(Disease.cold) == 0.7 * 3
+    assert pat1.optimal_expected_life_gain() == 0.7 * 3
     assert pat1.uuid != pat2.uuid
     assert hash(pat1) != hash(pat2)
 

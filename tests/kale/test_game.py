@@ -2,23 +2,28 @@ import pytest
 
 from kale.constants import Disease, TreatmentCost
 from kale.datastruct import Patient
-from kale.game import Round
+from kale.game import Round, FakeClassifierPatientProvider
+from kale.sampling.fake_clf import DirichletFC
 
 
 @pytest.fixture
 def round0():
-    pat1 = Patient(name="John", delta_dict={Disease.healthy: 0, Disease.cold: 3},
+    pat1 = Patient(name="John", treatment_effect_dict={Disease.healthy: 0, Disease.cold: 3},
                    confidence_dict={Disease.healthy: 0.3, Disease.cold: 0.7}, disease=Disease.cold)
-    pat2 = Patient(name="Jane", delta_dict={Disease.healthy: 0, Disease.lung_cancer: 10},
+    pat2 = Patient(name="Jane", treatment_effect_dict={Disease.healthy: 0, Disease.lung_cancer: 10},
                    confidence_dict={Disease.healthy: 0.2, Disease.lung_cancer: 0.8}, disease=Disease.healthy)
     return Round(patients=[pat1, pat2], identifier=0, max_cost=1)
 
 
 @pytest.fixture
 def external_patient():
-    return Patient(name="Jackson", delta_dict={Disease.healthy: 0, Disease.lung_cancer: 10},
+    return Patient(name="Jackson", treatment_effect_dict={Disease.healthy: 0, Disease.lung_cancer: 10},
                    confidence_dict={Disease.healthy: 0.8, Disease.lung_cancer: 0.2}, disease=Disease.lung_cancer)
 
+
+@pytest.fixture
+def patient_provider():
+    return FakeClassifierPatientProvider(DirichletFC(len(list(Disease))))
 
 def test_Round(round0, external_patient):
     assert round0.identifier == 0
@@ -52,3 +57,11 @@ def test_Round(round0, external_patient):
         round0.play({round0[0]: Disease.cold, external_patient: Disease.healthy})  # we miss patient Jane
     with pytest.raises(ValueError):
         round0.play({round0[0]: Disease.cold, round0[1]: Disease.lung_cancer})  # too expensive
+
+
+def test_PatientProvider(patient_provider):
+    patients = list(patient_provider.provide(2))
+    assert len(list(patient_provider.provide(2))) == 2
+    Round(patients, identifier=0)  # test that a round can be constructed
+    with pytest.raises(ValueError):
+        FakeClassifierPatientProvider(DirichletFC(2))  # wrong number of classes

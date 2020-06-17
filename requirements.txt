@@ -4,3 +4,4 @@ scikit-learn==0.23.1
 pydantic==1.5.1
 netcal==1.0
 matplotlib==3.2.1
+names==0.3.0

@@ -16,25 +16,28 @@ class Patient(BaseModel):
     # unfortunately pydantic does not support defaultdicts and if you try to use them, it blows
     # up into your face by converting them to dicts: https://github.com/samuelcolvin/pydantic/issues/1536
     # We might want to contribute to pydantic and solve this issue
-    delta_dict: Dict[str, float]
+    treatment_effect_dict: Dict[str, float]
     confidence_dict: Dict[str, float]
     uuid: UUID = Field(default_factory=uuid1)
 
-    def __init__(self, name: str, delta_dict: Dict[str, float], confidence_dict: Dict[str, float], disease: str):
+    def __init__(self, name: str, treatment_effect_dict: Dict[str, float],
+                 confidence_dict: Dict[str, float], disease: str):
         """
 
         :param name:
         :param disease: ground truth for disease
-        :param delta_dict: mapping disease_name -> expected life gain (if sick with that disease and treated)
+        :param treatment_effect_dict: mapping disease_name -> expected life gain (if sick with that disease and treated)
         :param confidence_dict: mapping disease_name -> confidence of being sick
         """
-        super().__init__(name=name, disease=disease, delta_dict=delta_dict, confidence_dict=confidence_dict)
+        super().__init__(name=name, disease=disease, treatment_effect_dict=treatment_effect_dict,
+                         confidence_dict=confidence_dict)
 
     @validator("confidence_dict")
     def _confidence_validator(cls, v: Dict[str, float], values):
-        missing_deltas = set(v).difference(values["delta_dict"])
-        if missing_deltas:
-            raise ValueError(f"Patient {values['name']}: Missing deltas for diseases: {missing_deltas}")
+        if "treatment_effect_dict" in values:
+            missing_deltas = set(v).difference(values["treatment_effect_dict"])
+            if missing_deltas:
+                raise ValueError(f"Patient {values['name']}: Missing deltas for diseases: {missing_deltas}")
         if not np.isclose(sum(v.values()), 1.0):
             raise ValueError(f"Patient {values['name']}: Confidences do not sum to 1")
         if values["disease"] not in v:
@@ -46,15 +49,18 @@ class Patient(BaseModel):
     def expected_life_gain(self, treated_disease: str):
         if treated_disease not in self.confidence_dict:
             return 0.0
-        return self.confidence_dict[treated_disease] * self.delta_dict[treated_disease]
+        return self.confidence_dict[treated_disease] * self.treatment_effect_dict[treated_disease]
+
+    def optimal_expected_life_gain(self):
+        return max([self.expected_life_gain(treated_disease) for treated_disease in self.confidence_dict])
 
     def true_life_gain(self, treated_disease: str):
         if self.disease == treated_disease:
-            return self.delta_dict[treated_disease]
+            return self.treatment_effect_dict[treated_disease]
         return 0.0
 
     def maximal_life_gain(self):
-        return self.delta_dict[self.disease]
+        return self.treatment_effect_dict[self.disease]
 
     def __hash__(self):
         return hash(self.uuid)

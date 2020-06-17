@@ -8,6 +8,8 @@ from kale.util import in_simplex
 
 
 class FakeClassifier(ABC):
+    num_classes: int
+
     @abstractmethod
     def get_sample(self) -> Tuple[int, np.ndarray]:
         pass

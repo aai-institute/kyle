@@ -2,15 +2,13 @@ import math
 from abc import ABC, abstractmethod
 from typing import Iterable, Dict, List, Optional
 
+import names
+import numpy as np
 from pydantic import BaseModel
 
+from kale.constants import Disease, TYPICAL_TREATMENT_EFFECT_DICT
 from kale.datastruct import Patient, PatientCollection
-
-
-class PatientProvider(ABC):
-    @abstractmethod
-    def provide(self, n: int) -> Iterable[Patient]:
-        pass
+from kale.sampling.fake_clf import FakeClassifier
 
 
 class Round(PatientCollection):
@@ -81,6 +79,35 @@ class Round(PatientCollection):
         self.results = self.Results(cost=cost, expected_life_gain=expected_life_gain, true_life_gain=true_life_gain)
 
 
+class PatientProvider(ABC):
+    @abstractmethod
+    def provide(self, n: int) -> Iterable[Patient]:
+        pass
+
+
+class FakeClassifierPatientProvider(PatientProvider):
+    def __init__(self, fake_classifier: FakeClassifier, disease_enum=Disease):
+        self.name_provider = names
+        self.fake_classifier = fake_classifier
+        self.disease_list = list(disease_enum)
+        if fake_classifier.num_classes != len(self.disease_list):
+            raise ValueError(f"Fake classifier num_classes does not match number of provided diseases")
+
+    def provide(self, n: int) -> Iterable[Patient]:
+        for j in range(n):
+            name = self.name_provider.get_full_name()
+            disease_label, confidence_array = self.fake_classifier.get_sample()
+            disease = self.disease_list[disease_label]
+            confidence_dict = {}
+            treatment_effect_dict = {}
+            for i, disease in enumerate(self.disease_list):
+                confidence_dict[disease] = confidence_array[i]
+                # bringing some per-patient variance to the degree to which medicine is useful
+                treatment_effect_dict[disease] = int(TYPICAL_TREATMENT_EFFECT_DICT[disease] * np.random.random() * 2)
+            yield Patient(name, treatment_effect_dict, confidence_dict, disease)
+
+
+# TODO: unfinished
 class Game:
     def __init__(self, patient_provider: PatientProvider):
         self.patient_provider = patient_provider
