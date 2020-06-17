@@ -1,5 +1,6 @@
+import copy
 import math
-from typing import Dict, List, Iterator
+from typing import Dict, List, Iterator, Union
 from uuid import UUID, uuid1
 
 import numpy as np
@@ -12,12 +13,12 @@ from kale.util import get_first_duplicate, iter_param_combinations
 class Patient(BaseModel):
     name: str
     disease: str
+    # unfortunately pydantic does not support defaultdicts and if you try to use them, it blows
+    # up into your face by converting them to dicts: https://github.com/samuelcolvin/pydantic/issues/1536
+    # We might want to contribute to pydantic and solve this issue
     delta_dict: Dict[str, float]
     confidence_dict: Dict[str, float]
     uuid: UUID = Field(default_factory=uuid1)
-
-    class Config:
-        allow_mutation = False
 
     def __init__(self, name: str, delta_dict: Dict[str, float], confidence_dict: Dict[str, float], disease: str):
         """
@@ -31,16 +32,19 @@ class Patient(BaseModel):
 
     @validator("confidence_dict")
     def _confidence_validator(cls, v: Dict[str, float], values):
-        if not set(v.keys()).issubset(values["delta_dict"].keys()):
-            raise KeyError(f"Patient {values['name']}: Missing deltas for classes: {v.keys()}")
+        missing_deltas = set(v).difference(values["delta_dict"])
+        if missing_deltas:
+            raise ValueError(f"Patient {values['name']}: Missing deltas for diseases: {missing_deltas}")
         if not np.isclose(sum(v.values()), 1.0):
             raise ValueError(f"Patient {values['name']}: Confidences do not sum to 1")
-        if not values["disease"] in v.keys():
-            raise KeyError(f"Patient {values['name']}: Missing confidence for ground truth disease: {v}")
+        if values["disease"] not in v:
+            raise ValueError(f"Patient {values['name']}: Missing confidence for ground truth disease: {v}")
+        if Disease.healthy not in v:
+            raise ValueError(f"Patient {values['name']}: Missing confidence for being healthy")
         return v
 
     def expected_life_gain(self, treated_disease: str):
-        if treated_disease not in self.confidence_dict.keys():
+        if treated_disease not in self.confidence_dict:
             return 0.0
         return self.confidence_dict[treated_disease] * self.delta_dict[treated_disease]
 
@@ -49,17 +53,30 @@ class Patient(BaseModel):
             return self.delta_dict[treated_disease]
         return 0.0
 
+    def maximal_life_gain(self):
+        return self.delta_dict[self.disease]
+
     def __hash__(self):
         return hash(self.uuid)
 
 
 class PatientCollection(BaseModel):
-    identifier: int
     patients: List[Patient]
+    identifier: Union[UUID, int]
 
-    # the init is purely for convenience in the IDE
-    def __init__(self, patients: List[Patient], identifier: int):
-        super().__init__(patients=patients, identifier=identifier)
+    def __init__(self, patients: List[Patient], identifier: Union[UUID, int] = None, **kwargs):
+        if identifier is None:
+            identifier = uuid1()
+        super().__init__(patients=patients, identifier=identifier, **kwargs)
+
+    def __len__(self):
+        return len(self.patients)
+
+    def __getitem__(self, item):
+        return self.patients[item]
+
+    def __iter__(self) -> Iterator[Patient]:
+        return self.patients.__iter__()
 
     @validator("patients")
     def _patients_validator(cls, patients: List[Patient], values):
@@ -68,11 +85,8 @@ class PatientCollection(BaseModel):
             raise ValueError(f"PatientCollection {values['identifier']}: Duplicate patient name: {duplicate_name}")
         return patients
 
-    def __iter__(self) -> Iterator[Patient]:
-        return self.patients.__iter__()
-
     # TODO or not TODO: this is a suboptimal brute-force approach
-    def optimal_treatment(self, max_cost=None, treatment_cost=TreatmentCost):
+    def get_optimal_treatment(self, max_cost=None, treatment_cost=TreatmentCost):
         """
         Finding the assignment patient->treated_disease that maximizes the total *expected* life gain for all patients.
         The ground truth for patients' diseases is not taken into account here
@@ -110,7 +124,7 @@ class PatientCollection(BaseModel):
 
         return optimal_treatment_dict, optimal_life_gain, optimal_treatment_cost
 
-    def expected_life_gain(self, treatment_dict: Dict[Patient, str]) -> float:
+    def get_expected_life_gain(self, treatment_dict: Dict[Patient, str]) -> float:
         """
         Expected value for the life gain due to the treated diseases based on the patients' disease confidences
 
@@ -120,7 +134,7 @@ class PatientCollection(BaseModel):
         """
         return sum([patient.expected_life_gain(treatment_dict[patient]) for patient in self])
 
-    def true_life_gain(self, treatment_dict: Dict[Patient, str]) -> float:
+    def get_true_life_gain(self, treatment_dict: Dict[Patient, str]) -> float:
         """
         True value for the life gain due to the treated diseases based on the patients' disease ground truths
 
@@ -130,7 +144,7 @@ class PatientCollection(BaseModel):
         """
         return sum([patient.true_life_gain(treatment_dict[patient]) for patient in self])
 
-    def treatment_cost(self, treatment_dict: Dict[Patient, str], treatment_cost=TreatmentCost) -> float:
+    def get_treatment_cost(self, treatment_dict: Dict[Patient, str], treatment_cost=TreatmentCost) -> float:
         """
         Total cost of the assigned treatments
 
@@ -140,3 +154,27 @@ class PatientCollection(BaseModel):
         :return:
         """
         return sum([treatment_cost[treatment_dict[patient]] for patient in self])
+
+    def maximal_life_gain(self):
+        """
+        The maximal possible life gain obtained by treating all patients correctly
+
+        :return:
+        """
+        return sum([patient.maximal_life_gain() for patient in self])
+
+    def get_counterfactual_optimal_treatment(self, max_cost=None, treatment_cost=TreatmentCost):
+        """
+        Finding the assignment patient->treated_disease that maximizes the true life gain for all patients.
+        The solution is based on ground truth for patients' diseases, confidences are not taken into account here
+
+        :param max_cost: maximal cost of all prescribed treatments
+        :param treatment_cost: enum representing treated_disease costs
+        :return: tuple (treatment_dict, life_gain, total_cost) where treatment_dict
+            maps patients to the disease to be treated for
+        """
+        counterfactual_collection = copy.deepcopy(self)
+        for pat in counterfactual_collection:
+            # if pat.disease = healthy the second value wins, so everything works as indented
+            pat.confidence_dict = {Disease.healthy: 0, pat.disease: 1.0}
+        return counterfactual_collection.get_optimal_treatment(max_cost=max_cost, treatment_cost=treatment_cost)
