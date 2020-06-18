@@ -4,6 +4,7 @@ from typing import Dict, List, Iterator, Union
 from uuid import UUID, uuid1
 
 import numpy as np
+import pandas as pd
 from pydantic import BaseModel, validator, Field
 
 from kale.constants import TreatmentCost, Disease
@@ -69,11 +70,15 @@ class Patient(BaseModel):
 class PatientCollection(BaseModel):
     patients: List[Patient]
     identifier: Union[UUID, int]
+    present_diseases: List[str] = None
 
     def __init__(self, patients: List[Patient], identifier: Union[UUID, int] = None, **kwargs):
         if identifier is None:
             identifier = uuid1()
-        super().__init__(patients=patients, identifier=identifier, **kwargs)
+        present_diseases = set()
+        for patient in patients:
+            present_diseases = present_diseases.union(patient.confidence_dict.keys())
+        super().__init__(patients=patients, identifier=identifier, present_diseases=sorted(present_diseases), **kwargs)
 
     def __len__(self):
         return len(self.patients)
@@ -184,3 +189,15 @@ class PatientCollection(BaseModel):
             # if pat.disease = healthy the second value wins, so everything works as indented
             pat.confidence_dict = {Disease.healthy: 0, pat.disease: 1.0}
         return counterfactual_collection.get_optimal_treatment(max_cost=max_cost, treatment_cost=treatment_cost)
+
+    def confidences_df(self):
+        df = pd.DataFrame({"Disease": self.present_diseases})
+        for patient in self:
+            df[patient.name] = df["Disease"].apply(lambda disease: patient.confidence_dict.get(disease, 0))
+        return df.set_index("Disease")
+
+    def treatment_effects_df(self):
+        df = pd.DataFrame({"Disease": self.present_diseases})
+        for patient in self:
+            df[patient.name] = df["Disease"].apply(lambda disease: patient.treatment_effect_dict.get(disease, 0))
+        return df.set_index("Disease")
