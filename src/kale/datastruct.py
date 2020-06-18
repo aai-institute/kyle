@@ -161,7 +161,7 @@ class PatientCollection(BaseModel):
         """
         return sum([treatment_cost[treatment_dict[patient]] for patient in self])
 
-    def maximal_life_gain(self):
+    def get_maximal_life_gain(self):
         """
         The maximal possible life gain obtained by treating all patients correctly
 

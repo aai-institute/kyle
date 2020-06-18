@@ -42,6 +42,8 @@ def test_Patient(pat1, pat2):
     assert pat1.expected_life_gain(Disease.lung_cancer) == 0.0
     assert pat1.expected_life_gain(Disease.cold) == 0.7 * 3
     assert pat1.optimal_expected_life_gain() == 0.7 * 3
+    assert pat1.maximal_life_gain() == 3.0
+    assert pat2.maximal_life_gain() == 0.0
     assert pat1.uuid != pat2.uuid
     assert hash(pat1) != hash(pat2)
 
@@ -59,6 +61,8 @@ def test_PatientCollection_basics(patient_collection1):
     assert patient_collection1.get_true_life_gain(treatments_dict) == 3.0
     assert patient_collection1.get_treatment_cost(treatments_dict) == cost
     assert patient_collection1.get_expected_life_gain(treatments_dict) == expected_life_gain
+    assert patient_collection1.get_counterfactual_optimal_treatment()[1] \
+        == patient_collection1.get_maximal_life_gain() == 3.0
 
 
 def test_PatientCollection_bounded_cost(patient_collection1):
