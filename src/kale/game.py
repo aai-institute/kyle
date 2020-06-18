@@ -1,3 +1,4 @@
+import logging
 import math
 from abc import ABC, abstractmethod
 from typing import Iterable, Dict, List, Optional
@@ -9,6 +10,8 @@ from pydantic import BaseModel
 from kale.constants import Disease, TYPICAL_TREATMENT_EFFECT_DICT
 from kale.datastruct import Patient, PatientCollection
 from kale.sampling.fake_clf import FakeClassifier
+
+log = logging.getLogger(__name__)
 
 
 class Round(PatientCollection):
@@ -63,6 +66,10 @@ class Round(PatientCollection):
         if missing_patients:
             raise KeyError(f"Invalid treatment_dict in round {self.identifier}: "
                            f"missing assignment for patients: {[pat.name for pat in missing_patients]}")
+        unknown_diseases = set(treatment_dict.values()).difference(Disease)
+        # this will in fact lead to a key error when computing costs but we might want to have a default cost later
+        if unknown_diseases:
+            log.warning(f"Treatment assignments for unknown diseases: {unknown_diseases}.")
 
         treatment_assignments = {}
         for patient in self:
@@ -107,7 +114,91 @@ class FakeClassifierPatientProvider(PatientProvider):
             yield Patient(name, treatment_effect_dict, confidence_dict, disease)
 
 
-# TODO: unfinished
+# TODO: write tests (once we agree on the interface)
 class Game:
+    """
+    Instances of this class represent a calibration game. The intended gameplay is
+        1) start a new round with some number of patients (they will be drawn from the provider)
+        2) submit your solution in form of a dict Patient->treated_disease. You must submit an assignment
+           for all patients, even if treated_disease is "healthy"
+        3) repeat
+
+    The game can be ended manually by calling .end() or automatically. It can be reset using the corresponding
+    method.
+
+    :param patient_provider:
+    """
     def __init__(self, patient_provider: PatientProvider):
         self.patient_provider = patient_provider
+        self.played_rounds = []
+        self._current_round: Optional[Round] = None
+        self._has_ended = False
+
+    @property
+    def current_round(self):
+        return self._current_round
+
+    @property
+    def has_ended(self):
+        return self._has_ended
+
+    def start_new_round(self, n_patients):
+        """
+        Starts and returns a new round
+
+        :param n_patients:
+        :return:
+        """
+        if self.current_round is not None:
+            raise ValueError("An unfinished round already exists, you can access it through .current_round")
+        if self._has_ended:
+            raise ValueError("Game has already ended. Reset it if you want to start again.")
+        round_id = len(self.played_rounds)
+        patients = list(self.patient_provider.provide(n_patients))
+        self._current_round = Round(patients=patients, identifier=round_id)
+
+    def play_current_round(self, treatment_dict: Dict[Patient, str]):
+        if self.current_round is None:
+            raise ValueError("No current round exists, you can start a new one with start_new_round.")
+        if self._has_ended:
+            raise ValueError("Game has already ended. Reset it if you want to start again.")
+        self.current_round.play(treatment_dict)
+        self.played_rounds.append(self.current_round)
+        self._current_round = None
+
+    def restart_current_round(self, n_patients=None):
+        """
+        Restarts current round and returns it
+
+        :param n_patients: if None, will use the same number of patients as in current round
+        :return:
+        """
+        if self.current_round is None:
+            raise ValueError("No current round exists, you can start a new one with start_new_round.")
+        if self._has_ended:
+            raise ValueError("Game has already ended. Reset it if you want to start again.")
+
+        if n_patients is None:
+            n_patients = len(self.current_round)
+        patients = list(self.patient_provider.provide(n_patients))
+        self._current_round = Round(patients=patients, identifier=self._current_round.identifier)
+        return self.current_round.copy()
+
+    def reset(self):
+        self._current_round = None
+        self._has_ended = False
+        self.played_rounds = []
+
+    def end(self):
+        self._current_round = None
+        self._has_ended = True
+
+    def get_round(self, index: int):
+        return self.played_rounds[index]
+
+    # TODO: implement methods for summary and evaluation of the game. We can discuss which ones we need.
+    #   They will always boil down to a simple loop over the played rounds, as the rounds already have inbuilt
+    #   evaluation methods
+
+
+
