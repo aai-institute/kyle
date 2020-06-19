@@ -12,6 +12,17 @@ from kale.util import get_first_duplicate, iter_param_combinations
 
 
 class Patient(BaseModel):
+    """
+    Representation of a patient.
+    This class is designed such that it can be easily serialized to and read from json. Hence the subclassing
+    of BaseModel and the dicts as preferred data structure for confidences and treatments.
+
+    :param name:
+    :param disease: ground truth for disease
+    :param treatment_effects: mapping disease_name -> expected life gain (if sick with that disease and treated)
+    :param confidences: mapping disease_name -> confidence of being sick
+    """
+
     name: str
     disease: str
     # unfortunately pydantic does not support defaultdicts and if you try to use them, it blows
@@ -23,13 +34,6 @@ class Patient(BaseModel):
 
     def __init__(self, name: str, treatment_effects: Dict[str, float],
                  confidences: Dict[str, float], disease: str):
-        """
-
-        :param name:
-        :param disease: ground truth for disease
-        :param treatment_effects: mapping disease_name -> expected life gain (if sick with that disease and treated)
-        :param confidences: mapping disease_name -> confidence of being sick
-        """
         super().__init__(name=name, disease=disease, treatment_effects=treatment_effects,
                          confidences=confidences)
 
@@ -73,6 +77,14 @@ class Patient(BaseModel):
 
 
 class PatientCollection(BaseModel):
+    """
+    Representation of a patient collection.
+    This class is designed such that it can be easily serialized to and read from json. Hence the subclassing
+    of BaseModel and the wrapping of a simple list.
+
+    :param patients: List of patients with unique names
+    :param identifier:
+    """
     patients: List[Patient]
     identifier: Union[UUID, int]
     present_diseases: List[str] = None
