@@ -6,20 +6,20 @@ from game.datastruct import Patient, PatientCollection
 
 @pytest.fixture
 def pat1():
-    return Patient(name="John", treatment_effect_dict={Disease.healthy: 0, Disease.cold: 3},
-                   confidence_dict={Disease.healthy: 0.3, Disease.cold: 0.7}, disease=Disease.cold)
+    return Patient(name="John", treatment_effects={Disease.healthy: 0, Disease.cold: 3},
+                   confidences={Disease.healthy: 0.3, Disease.cold: 0.7}, disease=Disease.cold)
 
 
 @pytest.fixture
 def pat2():
-    return Patient(name="Jane", treatment_effect_dict={Disease.healthy: 0, Disease.lung_cancer: 10},
-                   confidence_dict={Disease.healthy: 0.2, Disease.lung_cancer: 0.8}, disease=Disease.healthy)
+    return Patient(name="Jane", treatment_effects={Disease.healthy: 0, Disease.lung_cancer: 10},
+                   confidences={Disease.healthy: 0.2, Disease.lung_cancer: 0.8}, disease=Disease.healthy)
 
 
 @pytest.fixture
 def pat3():
-    return Patient(name="Jackson", treatment_effect_dict={Disease.healthy: 0, Disease.lung_cancer: 10},
-                   confidence_dict={Disease.healthy: 0.8, Disease.lung_cancer: 0.2}, disease=Disease.lung_cancer)
+    return Patient(name="Jackson", treatment_effects={Disease.healthy: 0, Disease.lung_cancer: 10},
+                   confidences={Disease.healthy: 0.8, Disease.lung_cancer: 0.2}, disease=Disease.lung_cancer)
 
 
 @pytest.fixture

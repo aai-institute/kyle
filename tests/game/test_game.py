@@ -8,17 +8,17 @@ from kale.sampling.fake_clf import DirichletFC
 
 @pytest.fixture
 def round0():
-    pat1 = Patient(name="John", treatment_effect_dict={Disease.healthy: 0, Disease.cold: 3},
-                   confidence_dict={Disease.healthy: 0.3, Disease.cold: 0.7}, disease=Disease.cold)
-    pat2 = Patient(name="Jane", treatment_effect_dict={Disease.healthy: 0, Disease.lung_cancer: 10},
-                   confidence_dict={Disease.healthy: 0.2, Disease.lung_cancer: 0.8}, disease=Disease.healthy)
+    pat1 = Patient(name="John", treatment_effects={Disease.healthy: 0, Disease.cold: 3},
+                   confidences={Disease.healthy: 0.3, Disease.cold: 0.7}, disease=Disease.cold)
+    pat2 = Patient(name="Jane", treatment_effects={Disease.healthy: 0, Disease.lung_cancer: 10},
+                   confidences={Disease.healthy: 0.2, Disease.lung_cancer: 0.8}, disease=Disease.healthy)
     return Round(patients=[pat1, pat2], identifier=0, max_cost=1)
 
 
 @pytest.fixture
 def external_patient():
-    return Patient(name="Jackson", treatment_effect_dict={Disease.healthy: 0, Disease.lung_cancer: 10},
-                   confidence_dict={Disease.healthy: 0.8, Disease.lung_cancer: 0.2}, disease=Disease.lung_cancer)
+    return Patient(name="Jackson", treatment_effects={Disease.healthy: 0, Disease.lung_cancer: 10},
+                   confidences={Disease.healthy: 0.8, Disease.lung_cancer: 0.2}, disease=Disease.lung_cancer)
 
 
 @pytest.fixture
@@ -35,22 +35,22 @@ def test_Round(round0, external_patient):
     assert round0.results is None
 
     # playing the round
-    valid_treatment_dict = {round0[0]: Disease.cold, round0[1]: Disease.healthy}
+    valid_treatments = {round0[0]: Disease.cold, round0[1]: Disease.healthy}
     round0.play({round0[0]: Disease.cold, round0[1]: Disease.healthy})
     assert round0.was_played()
     assert round0.results is not None
     assert round0.results.cost == TreatmentCost.cold
     assert round0.results.expected_life_gain == 0.7 * 3
     assert round0.results.true_life_gain == 3.0
-    assert round0.assigned_treatment_dict == valid_treatment_dict
+    assert round0.assigned_treatments == valid_treatments
     with pytest.raises(ValueError):
-        round0.play(valid_treatment_dict)
+        round0.play(valid_treatments)
 
     # testing reset
     round0.reset()
     assert round0.results is None
-    assert round0.assigned_treatment_dict is None
-    round0.play(valid_treatment_dict)
+    assert round0.assigned_treatments is None
+    round0.play(valid_treatments)
 
     # testing invalid input
     round0.reset()

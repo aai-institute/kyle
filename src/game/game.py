@@ -7,7 +7,7 @@ import names
 import numpy as np
 from pydantic import BaseModel
 
-from game.constants import Disease, TYPICAL_TREATMENT_EFFECT_DICT
+from game.constants import Disease, TYPICAL_TREATMENT_EFFECTS
 from game.datastruct import Patient, PatientCollection
 from kale.sampling.fake_clf import FakeClassifier
 
@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 class Round(PatientCollection):
     max_cost: float
-    assigned_treatment_dict: Optional[Dict[Patient, str]] = None
+    assigned_treatments: Optional[Dict[Patient, str]] = None
     results: Optional['Round.Results'] = None
 
     def __init__(self, patients: List[Patient], identifier: int, max_cost=None):
@@ -44,45 +44,45 @@ class Round(PatientCollection):
             allow_mutation = False
 
     def was_played(self):
-        return self.assigned_treatment_dict is not None
+        return self.assigned_treatments is not None
 
     def reset(self):
-        self.assigned_treatment_dict = None
+        self.assigned_treatments = None
         self.results = None
 
-    def play(self, treatment_dict: Dict[Patient, str]):
+    def play(self, treatments: Dict[Patient, str]):
         """
         Play the round by assigning treatments. Executing this will set the treatments, compute and set results and
         mark the round as played
 
-        :param treatment_dict: dict assigning treated diseases to all patients in the round
+        :param treatments: dict assigning treated diseases to all patients in the round
             (its keys may form a superset of the patients)
         :return: None
         """
         if self.was_played():
             raise ValueError(f"Round {self.identifier} was already played. "
                             f"You can reassign treatments after resetting it")
-        missing_patients = set(self.patients).difference(treatment_dict)
+        missing_patients = set(self.patients).difference(treatments)
         if missing_patients:
-            raise KeyError(f"Invalid treatment_dict in round {self.identifier}: "
+            raise KeyError(f"Invalid treatments in round {self.identifier}: "
                            f"missing assignment for patients: {[pat.name for pat in missing_patients]}")
-        unknown_diseases = set(treatment_dict.values()).difference(Disease)
+        unknown_diseases = set(treatments.values()).difference(Disease)
         # this will in fact lead to a key error when computing costs but we might want to have a default cost later
         if unknown_diseases:
             log.warning(f"Treatment assignments for unknown diseases: {unknown_diseases}.")
 
         treatment_assignments = {}
         for patient in self:
-            treatment_assignments[patient] = treatment_dict[patient]
+            treatment_assignments[patient] = treatments[patient]
         cost = self.get_treatment_cost(treatment_assignments)
         if cost > self.max_cost:
-            raise ValueError(f"Invalid treatment_dict in round {self.identifier}: "
+            raise ValueError(f"Invalid treatments in round {self.identifier}: "
                              f"assigned treatments' cost is {cost}: larger than max_cost {self.max_cost}")
 
-        self.assigned_treatment_dict = treatment_assignments
-        cost = self.get_treatment_cost(self.assigned_treatment_dict)
-        expected_life_gain = self.get_expected_life_gain(self.assigned_treatment_dict)
-        true_life_gain = self.get_true_life_gain(self.assigned_treatment_dict)
+        self.assigned_treatments = treatment_assignments
+        cost = self.get_treatment_cost(self.assigned_treatments)
+        expected_life_gain = self.get_expected_life_gain(self.assigned_treatments)
+        true_life_gain = self.get_true_life_gain(self.assigned_treatments)
         self.results = self.Results(cost=cost, expected_life_gain=expected_life_gain, true_life_gain=true_life_gain)
 
 
@@ -105,13 +105,13 @@ class FakeClassifierPatientProvider(PatientProvider):
             name = self.name_provider.get_full_name()
             disease_label, confidence_array = self.fake_classifier.get_sample()
             disease = self.disease_list[disease_label]
-            confidence_dict = {}
-            treatment_effect_dict = {}
+            confidences = {}
+            treatment_effects = {}
             for i, disease in enumerate(self.disease_list):
-                confidence_dict[disease] = confidence_array[i]
+                confidences[disease] = confidence_array[i]
                 # bringing some per-patient variance to the degree to which medicine is useful
-                treatment_effect_dict[disease] = int(TYPICAL_TREATMENT_EFFECT_DICT[disease] * np.random.random() * 2)
-            yield Patient(name, treatment_effect_dict, confidence_dict, disease)
+                treatment_effects[disease] = int(TYPICAL_TREATMENT_EFFECTS[disease] * np.random.random() * 2)
+            yield Patient(name, treatment_effects, confidences, disease)
 
 
 # TODO: write tests (once we agree on the interface)
@@ -157,12 +157,12 @@ class Game:
         patients = list(self.patient_provider.provide(n_patients))
         self._current_round = Round(patients=patients, identifier=round_id)
 
-    def play_current_round(self, treatment_dict: Dict[Patient, str]):
+    def play_current_round(self, treatments: Dict[Patient, str]):
         if self.current_round is None:
             raise ValueError("No current round exists, you can start a new one with start_new_round.")
         if self._has_ended:
             raise ValueError("Game has already ended. Reset it if you want to start again.")
-        self.current_round.play(treatment_dict)
+        self.current_round.play(treatments)
         self.played_rounds.append(self.current_round)
         self._current_round = None
 

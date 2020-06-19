@@ -18,7 +18,7 @@ class TreatmentCost(float, Enum):
 
 
 # values in months
-TYPICAL_TREATMENT_EFFECT_DICT = {
+TYPICAL_TREATMENT_EFFECTS = {
     "healthy": 0.0,
     "cold": 12,
     "flu": 24,
