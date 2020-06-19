@@ -36,16 +36,18 @@ def test_Patient(pat1, pat2):
     assert pat1.name == "John"
     assert pat1.disease == "cold"
     assert pat1.true_life_gain(Disease.healthy) == 0.0
-    assert pat1.true_life_gain(Disease.lung_cancer) == 0.0
     assert pat1.true_life_gain(Disease.cold) == 3.0
     assert pat1.expected_life_gain(Disease.healthy) == 0.0
-    assert pat1.expected_life_gain(Disease.lung_cancer) == 0.0
     assert pat1.expected_life_gain(Disease.cold) == 0.7 * 3
     assert pat1.optimal_expected_life_gain() == 0.7 * 3
     assert pat1.maximal_life_gain() == 3.0
     assert pat2.maximal_life_gain() == 0.0
     assert pat1.uuid != pat2.uuid
     assert hash(pat1) != hash(pat2)
+    with pytest.raises(KeyError):
+        pat1.true_life_gain(Disease.lung_cancer)
+    with pytest.raises(KeyError):
+        pat1.expected_life_gain(Disease.lung_cancer)
 
 
 def test_PatientCollection_basics(patient_collection1):

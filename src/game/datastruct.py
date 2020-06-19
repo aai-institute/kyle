@@ -1,6 +1,6 @@
 import copy
 import math
-from typing import Dict, List, Iterator, Union
+from typing import Dict, List, Iterator, Union, Tuple
 from uuid import UUID, uuid1
 
 import numpy as np
@@ -48,20 +48,25 @@ class Patient(BaseModel):
         return v
 
     def expected_life_gain(self, treated_disease: str):
-        if treated_disease not in self.confidences:
-            return 0.0
+        self._validate_disease(treated_disease)
         return self.confidences[treated_disease] * self.treatment_effects[treated_disease]
 
     def optimal_expected_life_gain(self):
         return max([self.expected_life_gain(treated_disease) for treated_disease in self.confidences])
 
     def true_life_gain(self, treated_disease: str):
+        self._validate_disease(treated_disease)
         if self.disease == treated_disease:
             return self.treatment_effects[treated_disease]
         return 0.0
 
     def maximal_life_gain(self):
         return self.treatment_effects[self.disease]
+
+    def _validate_disease(self, treated_disease: str):
+        if treated_disease not in self.confidences:
+            raise KeyError(f"Unexpected treated disease for patient {self.name}: "
+                           f"no confidence value for {treated_disease}")
 
     def __hash__(self):
         return hash(self.uuid)
@@ -97,7 +102,8 @@ class PatientCollection(BaseModel):
         return patients
 
     # TODO or not TODO: this is a suboptimal brute-force approach
-    def get_optimal_treatment(self, max_cost=None, treatment_cost=TreatmentCost):
+    def get_optimal_treatment(self, max_cost=None, treatment_cost=TreatmentCost) \
+            -> Tuple[Dict[Patient, str], float, float]:
         """
         Finding the assignment patient->treated_disease that maximizes the total *expected* life gain for all patients.
         The ground truth for patients' diseases is not taken into account here
@@ -105,7 +111,7 @@ class PatientCollection(BaseModel):
         :param max_cost: maximal cost of all prescribed treatments
         :param treatment_cost: enum representing treated_disease costs
         :return: tuple (treatments, expected_life_gain, total_cost) where treatments
-            is a dict mapping patients to the disease to be treated for
+            is a dict mapping patient to treated_disease
         """
         if max_cost is None:
             max_cost = math.inf
@@ -116,8 +122,8 @@ class PatientCollection(BaseModel):
             treated_disease_options[patient] = list(patient.confidences.keys())
             optimal_treatments[patient] = Disease.healthy.value  # initialize by recommending no treated_disease
 
-        optimal_life_gain: float = -math.inf
-        optimal_treatment_cost: float = 0.0
+        optimal_life_gain = -math.inf
+        optimal_treatment_cost = 0.0
         for treatments in iter_param_combinations(treated_disease_options):
             cost = 0
             expected_life_gain = 0
@@ -139,8 +145,7 @@ class PatientCollection(BaseModel):
         """
         Expected value for the life gain due to the treated diseases based on the patients' disease confidences
 
-        :param treatments: dict assigning treated diseases to all patients in the collection
-            (its keys may form a superset of the collection)
+        :param treatments: dict mapping patient to treated_disease (its keys may form a superset of the collection)
         :return:
         """
         return sum([patient.expected_life_gain(treatments[patient]) for patient in self])
@@ -149,8 +154,7 @@ class PatientCollection(BaseModel):
         """
         True value for the life gain due to the treated diseases based on the patients' disease ground truths
 
-        :param treatments: dict assigning treated diseases to all patients in the collection
-            (its keys may form a superset of the collection)
+        :param treatments: dict mapping patient to treated_disease (its keys may form a superset of the collection)
         :return:
         """
         return sum([patient.true_life_gain(treatments[patient]) for patient in self])
@@ -159,8 +163,7 @@ class PatientCollection(BaseModel):
         """
         Total cost of the assigned treatments
 
-        :param treatments: dict assigning treated diseases to all patients in the collection
-            (its keys may form a superset of the collection)
+        :param treatments: dict mapping patient to treated_disease (its keys may form a superset of the collection)
         :param treatment_cost: enum representing treated_disease costs
         :return:
         """
@@ -181,8 +184,8 @@ class PatientCollection(BaseModel):
 
         :param max_cost: maximal cost of all prescribed treatments
         :param treatment_cost: enum representing treated_disease costs
-        :return: tuple (treatments, life_gain, total_cost) where treatments
-            maps patients to the disease to be treated for
+        :return: tuple (treatments, life_gain, total_cost) where treatments is a dict
+            mapping patients to treated_disease
         """
         counterfactual_collection = copy.deepcopy(self)
         for pat in counterfactual_collection:
