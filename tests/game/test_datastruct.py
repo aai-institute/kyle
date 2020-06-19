@@ -1,7 +1,7 @@
 import pytest
 
-from kale.constants import Disease, TreatmentCost
-from kale.datastruct import Patient, PatientCollection
+from game.constants import Disease, TreatmentCost
+from game.datastruct import Patient, PatientCollection
 
 
 @pytest.fixture

@@ -7,8 +7,8 @@ import names
 import numpy as np
 from pydantic import BaseModel
 
-from kale.constants import Disease, TYPICAL_TREATMENT_EFFECT_DICT
-from kale.datastruct import Patient, PatientCollection
+from game.constants import Disease, TYPICAL_TREATMENT_EFFECT_DICT
+from game.datastruct import Patient, PatientCollection
 from kale.sampling.fake_clf import FakeClassifier
 
 log = logging.getLogger(__name__)

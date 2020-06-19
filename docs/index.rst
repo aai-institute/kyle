@@ -1,5 +1,5 @@
-kale
-==============================
+kale library and game
+=====================
 
 .. toctree::
    :caption: Guides and Tutorials
@@ -12,6 +12,7 @@ kale
    :caption: Modules
 
    kale/index
+   game/index
 
 
 

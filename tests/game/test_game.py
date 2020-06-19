@@ -1,8 +1,8 @@
 import pytest
 
-from kale.constants import Disease, TreatmentCost
-from kale.datastruct import Patient
-from kale.game import Round, FakeClassifierPatientProvider
+from game.constants import Disease, TreatmentCost
+from game.datastruct import Patient
+from game.game import Round, FakeClassifierPatientProvider
 from kale.sampling.fake_clf import DirichletFC
 
 
@@ -24,6 +24,7 @@ def external_patient():
 @pytest.fixture
 def patient_provider():
     return FakeClassifierPatientProvider(DirichletFC(len(list(Disease))))
+
 
 def test_Round(round0, external_patient):
     assert round0.identifier == 0

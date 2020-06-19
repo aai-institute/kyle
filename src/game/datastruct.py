@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from pydantic import BaseModel, validator, Field
 
-from kale.constants import TreatmentCost, Disease
+from game.constants import TreatmentCost, Disease
 from kale.util import get_first_duplicate, iter_param_combinations
 
 

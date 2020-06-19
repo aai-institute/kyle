@@ -1,6 +1,6 @@
 game
 ====
 
-.. automodule:: kale.game
+.. automodule:: game.game
    :members:
    :undoc-members:
