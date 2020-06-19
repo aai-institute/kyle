@@ -1,14 +1,11 @@
-import copy
-import math
-from typing import Dict, List, Iterator, Union, Tuple
+from typing import Dict, List, Iterator, Union
 from uuid import UUID, uuid1
 
 import numpy as np
-import pandas as pd
 from pydantic import BaseModel, validator, Field
 
 from game.constants import TreatmentCost, Disease
-from kale.util import get_first_duplicate, iter_param_combinations
+from kale.util import get_first_duplicate
 
 
 class Patient(BaseModel):
@@ -30,12 +27,22 @@ class Patient(BaseModel):
     # We might want to contribute to pydantic and solve this issue
     treatment_effects: Dict[str, float]
     confidences: Dict[str, float]
+    # uuid is public because pydantic does not allow private fields without hacking around, see
+    # https://github.com/samuelcolvin/pydantic/issues/655
     uuid: UUID = Field(default_factory=uuid1)
 
     def __init__(self, name: str, treatment_effects: Dict[str, float],
                  confidences: Dict[str, float], disease: str):
         super().__init__(name=name, disease=disease, treatment_effects=treatment_effects,
                          confidences=confidences)
+
+    def __hash__(self):
+        return hash(self.uuid)
+
+    def __eq__(self, other: 'PatientCollection'):
+        if other.__class__ == self.__class__:
+            return self.json() == other.json()
+        return False
 
     @validator("confidences")
     def _confidence_validator(cls, v: Dict[str, float], values):
@@ -72,9 +79,6 @@ class Patient(BaseModel):
             raise KeyError(f"Unexpected treated disease for patient {self.name}: "
                            f"no confidence value for {treated_disease}")
 
-    def __hash__(self):
-        return hash(self.uuid)
-
 
 class PatientCollection(BaseModel):
     """
@@ -87,15 +91,12 @@ class PatientCollection(BaseModel):
     """
     patients: List[Patient]
     identifier: Union[UUID, int]
-    present_diseases: List[str] = None
+    uuid: UUID = Field(default_factory=uuid1)
 
     def __init__(self, patients: List[Patient], identifier: Union[UUID, int] = None, **kwargs):
         if identifier is None:
             identifier = uuid1()
-        present_diseases = set()
-        for patient in patients:
-            present_diseases = present_diseases.union(patient.confidences.keys())
-        super().__init__(patients=patients, identifier=identifier, present_diseases=sorted(present_diseases), **kwargs)
+        super().__init__(patients=patients, identifier=identifier, **kwargs)
 
     def __len__(self):
         return len(self.patients)
@@ -106,6 +107,14 @@ class PatientCollection(BaseModel):
     def __iter__(self) -> Iterator[Patient]:
         return self.patients.__iter__()
 
+    def __hash__(self):
+        return hash(self.uuid)
+
+    def __eq__(self, other: 'PatientCollection'):
+        if other.__class__ == self.__class__:
+            return self.json() == other.json()
+        return False
+
     @validator("patients")
     def _patients_validator(cls, patients: List[Patient], values):
         duplicate_name = get_first_duplicate([patient.name for patient in patients])
@@ -113,47 +122,7 @@ class PatientCollection(BaseModel):
             raise ValueError(f"PatientCollection {values['identifier']}: Duplicate patient name: {duplicate_name}")
         return patients
 
-    # TODO or not TODO: this is a suboptimal brute-force approach
-    def get_optimal_treatment(self, max_cost=None, treatment_cost=TreatmentCost) \
-            -> Tuple[Dict[Patient, str], float, float]:
-        """
-        Finding the assignment patient->treated_disease that maximizes the total *expected* life gain for all patients.
-        The ground truth for patients' diseases is not taken into account here
-
-        :param max_cost: maximal cost of all prescribed treatments
-        :param treatment_cost: enum representing treated_disease costs
-        :return: tuple (treatments, expected_life_gain, total_cost) where treatments
-            is a dict mapping patient to treated_disease
-        """
-        if max_cost is None:
-            max_cost = math.inf
-
-        treated_disease_options: Dict[Patient, List[str]] = {}
-        optimal_treatments: Dict[Patient, str] = {}
-        for patient in self:
-            treated_disease_options[patient] = list(patient.confidences.keys())
-            optimal_treatments[patient] = Disease.healthy.value  # initialize by recommending no treated_disease
-
-        optimal_life_gain = -math.inf
-        optimal_treatment_cost = 0.0
-        for treatments in iter_param_combinations(treated_disease_options):
-            cost = 0
-            expected_life_gain = 0
-            for pat, treated_disease in treatments.items():
-                cost += treatment_cost[treated_disease].value
-                if cost > max_cost:  # no need to continue the inner loop
-                    break
-                expected_life_gain += pat.expected_life_gain(treated_disease)
-            if cost > max_cost or expected_life_gain < optimal_life_gain:
-                continue
-
-            optimal_life_gain = expected_life_gain
-            optimal_treatments = treatments
-            optimal_treatment_cost = cost
-
-        return optimal_treatments, optimal_life_gain, optimal_treatment_cost
-
-    def get_expected_life_gain(self, treatments: Dict[Patient, str]) -> float:
+    def expected_life_gain(self, treatments: Dict[Patient, str]) -> float:
         """
         Expected value for the life gain due to the treated diseases based on the patients' disease confidences
 
@@ -162,7 +131,7 @@ class PatientCollection(BaseModel):
         """
         return sum([patient.expected_life_gain(treatments[patient]) for patient in self])
 
-    def get_true_life_gain(self, treatments: Dict[Patient, str]) -> float:
+    def true_life_gain(self, treatments: Dict[Patient, str]) -> float:
         """
         True value for the life gain due to the treated diseases based on the patients' disease ground truths
 
@@ -171,7 +140,7 @@ class PatientCollection(BaseModel):
         """
         return sum([patient.true_life_gain(treatments[patient]) for patient in self])
 
-    def get_treatment_cost(self, treatments: Dict[Patient, str], treatment_cost=TreatmentCost) -> float:
+    def treatment_cost(self, treatments: Dict[Patient, str], treatment_cost=TreatmentCost) -> float:
         """
         Total cost of the assigned treatments
 
@@ -181,38 +150,10 @@ class PatientCollection(BaseModel):
         """
         return sum([treatment_cost[treatments[patient]] for patient in self])
 
-    def get_maximal_life_gain(self):
+    def maximal_life_gain(self):
         """
         The maximal possible life gain obtained by treating all patients correctly
 
         :return:
         """
         return sum([patient.maximal_life_gain() for patient in self])
-
-    def get_counterfactual_optimal_treatment(self, max_cost=None, treatment_cost=TreatmentCost):
-        """
-        Finding the assignment patient->treated_disease that maximizes the true life gain for all patients.
-        The solution is based on ground truth for patients' diseases, confidences are not taken into account here
-
-        :param max_cost: maximal cost of all prescribed treatments
-        :param treatment_cost: enum representing treated_disease costs
-        :return: tuple (treatments, life_gain, total_cost) where treatments is a dict
-            mapping patients to treated_disease
-        """
-        counterfactual_collection = copy.deepcopy(self)
-        for pat in counterfactual_collection:
-            # if pat.disease = healthy the second value wins, so everything works as indented
-            pat.confidences = {Disease.healthy: 0, pat.disease: 1.0}
-        return counterfactual_collection.get_optimal_treatment(max_cost=max_cost, treatment_cost=treatment_cost)
-
-    def confidences_df(self):
-        df = pd.DataFrame({"Disease": self.present_diseases})
-        for patient in self:
-            df[patient.name] = df["Disease"].apply(lambda disease: patient.confidences.get(disease, 0))
-        return df.set_index("Disease")
-
-    def treatment_effects_df(self):
-        df = pd.DataFrame({"Disease": self.present_diseases})
-        for patient in self:
-            df[patient.name] = df["Disease"].apply(lambda disease: patient.treatment_effects.get(disease, 0))
-        return df.set_index("Disease")

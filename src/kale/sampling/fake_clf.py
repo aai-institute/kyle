@@ -157,7 +157,7 @@ class SufficientlyConfidentFCBuilder:
         the j_th weight of the i_th distribution.
 
         :param alpha: array of shape (n_classes, n_classes) with semi-positive entries
-        :return: self
+        :return: patients
         """
         assert alpha.shape == (self.num_classes, self.num_classes), f"Wrong input shape: {alpha.shape}"
         self._fc.alpha = alpha

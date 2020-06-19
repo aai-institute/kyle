@@ -74,15 +74,15 @@ class Round(PatientCollection):
         treatment_assignments = {}
         for patient in self:
             treatment_assignments[patient] = treatments[patient]
-        cost = self.get_treatment_cost(treatment_assignments)
+        cost = self.treatment_cost(treatment_assignments)
         if cost > self.max_cost:
             raise ValueError(f"Invalid treatments in round {self.identifier}: "
                              f"assigned treatments' cost is {cost}: larger than max_cost {self.max_cost}")
 
         self.assigned_treatments = treatment_assignments
-        cost = self.get_treatment_cost(self.assigned_treatments)
-        expected_life_gain = self.get_expected_life_gain(self.assigned_treatments)
-        true_life_gain = self.get_true_life_gain(self.assigned_treatments)
+        cost = self.treatment_cost(self.assigned_treatments)
+        expected_life_gain = self.expected_life_gain(self.assigned_treatments)
+        true_life_gain = self.true_life_gain(self.assigned_treatments)
         self.results = self.Results(cost=cost, expected_life_gain=expected_life_gain, true_life_gain=true_life_gain)
 
 
