@@ -3,6 +3,7 @@ image: "python:3.8-buster"
 stages:
   - tox
   - package
+  - pages
 
 tox:
   stage: tox
@@ -19,4 +20,15 @@ package:
     paths:
       - dist/*.whl
 
-
+pages:
+  stage: pages
+  dependencies:
+    - tox
+  script:
+    - mkdir -p public
+    - mv docs/_build/html/* public
+  artifacts:
+    paths:
+    - public
+  only:
+    - develop
