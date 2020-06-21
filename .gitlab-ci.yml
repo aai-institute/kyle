@@ -10,6 +10,9 @@ tox:
   script:
     - pip install tox
     - tox
+  artifacts:
+    paths:
+      - docs/_build
 
 package:
   stage: package
