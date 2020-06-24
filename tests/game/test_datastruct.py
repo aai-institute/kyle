@@ -3,7 +3,7 @@ import copy
 import pytest
 
 from game.constants import Disease, TreatmentCost
-from game.datastruct import Patient, PatientCollection
+from game.datastruct import Patient, PatientCollection, BaseModelWithUUID
 from game.opt import counterfactual_optimal_treatment, optimal_treatment
 
 
@@ -27,12 +27,22 @@ def pat3():
 
 @pytest.fixture
 def patient_collection1(pat1, pat2):
-    return PatientCollection(patients=[pat1, pat2], identifier=0)
+    return PatientCollection([pat1, pat2])
 
 
 @pytest.fixture
 def patient_collection2(pat1, pat3):
-    return PatientCollection(patients=[pat1, pat3], identifier=0)
+    return PatientCollection([pat1, pat3])
+
+
+def test_BaseModelWithUUID():
+    bm1 = BaseModelWithUUID()
+    bm2 = BaseModelWithUUID()
+    bm_prescribed = BaseModelWithUUID(uuid=12)
+    assert bm1 == bm1
+    assert bm1 != bm2 != bm_prescribed
+    assert hash(bm1) != hash(bm2) != hash(bm_prescribed)
+    assert bm_prescribed.uuid == 12
 
 
 def test_Patient(pat1, pat2):
@@ -54,7 +64,6 @@ def test_Patient(pat1, pat2):
 
 
 def test_PatientCollection_basics(patient_collection1):
-    assert patient_collection1.identifier == 0
 
     # with unbounded costs we just heal the disease
     treatments_dict, expected_life_gain, cost = optimal_treatment(patient_collection1)

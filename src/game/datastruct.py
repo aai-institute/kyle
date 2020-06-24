@@ -8,11 +8,32 @@ from game.constants import TreatmentCost, Disease
 from kale.util import get_first_duplicate
 
 
-class Patient(BaseModel):
+class BaseModelWithUUID(BaseModel):
     """
-    Representation of a patient.
-    This class is designed such that it can be easily serialized to and read from json. Hence the subclassing
-    of BaseModel and the dicts as preferred data structure for confidences and treatments.
+    Base class for models where the hash and equality are based on a uuid that is assigned during instatiation
+    """
+
+    # uuid is public because pydantic does not allow private fields without hacking around, see
+    # https://github.com/samuelcolvin/pydantic/issues/655
+    uuid: Union[UUID, int] = Field(default_factory=uuid1)
+
+    def __hash__(self):
+        return hash(self.uuid)
+
+    def __eq__(self, other):
+        if other.__class__ == self.__class__:
+            return self.uuid == other.uuid
+        return False
+
+
+class Patient(BaseModelWithUUID):
+    """
+    Representation of a patient. Equality of Patients is based on a uuid that is assigned on instantiation,
+    even though the fields are mutable for convenience. Users of the class are encouraged to create
+    copies of the collection in case they want to mutate fields.
+
+    This class is designed such that it can be easily serialized to and read from json or a database.
+    Hence the subclassing of BaseModel and the dicts as preferred data structure for confidences and treatments.
 
     :param name:
     :param disease: ground truth for disease
@@ -27,22 +48,12 @@ class Patient(BaseModel):
     # We might want to contribute to pydantic and solve this issue
     treatment_effects: Dict[str, float]
     confidences: Dict[str, float]
-    # uuid is public because pydantic does not allow private fields without hacking around, see
-    # https://github.com/samuelcolvin/pydantic/issues/655
-    uuid: UUID = Field(default_factory=uuid1)
 
-    def __init__(self, name: str, treatment_effects: Dict[str, float],
-                 confidences: Dict[str, float], disease: str):
+    # init is purely for IDE purposes
+    def __init__(self, name: str, disease: str, treatment_effects: Dict[str, float],
+            confidences: Dict[str, float], **kwargs):
         super().__init__(name=name, disease=disease, treatment_effects=treatment_effects,
-                         confidences=confidences)
-
-    def __hash__(self):
-        return hash(self.uuid)
-
-    def __eq__(self, other: 'PatientCollection'):
-        if other.__class__ == self.__class__:
-            return self.json() == other.json()
-        return False
+                confidences=confidences, **kwargs)
 
     @validator("confidences")
     def _confidence_validator(cls, v: Dict[str, float], values):
@@ -80,23 +91,22 @@ class Patient(BaseModel):
                            f"no confidence value for {treated_disease}")
 
 
-class PatientCollection(BaseModel):
+class PatientCollection(BaseModelWithUUID):
     """
-    Representation of a patient collection.
-    This class is designed such that it can be easily serialized to and read from json. Hence the subclassing
-    of BaseModel and the wrapping of a simple list.
+    Representation of an ordered list of patients with an identifier and a uuid. Equality of PatientCollections is
+    based on a uuid that is assigned on instantiation,
+    even though the fields are mutable for convenience. Users of the class are encouraged to create
+    copies of the collection in case they want to mutate fields.
+
+    This class is designed such that it can be easily serialized to and read from json or from a database.
+    Hence the subclassing of BaseModel and the wrapping of a simple list.
 
     :param patients: List of patients with unique names
-    :param identifier:
     """
     patients: List[Patient]
-    identifier: Union[UUID, int]
-    uuid: UUID = Field(default_factory=uuid1)
 
-    def __init__(self, patients: List[Patient], identifier: Union[UUID, int] = None, **kwargs):
-        if identifier is None:
-            identifier = uuid1()
-        super().__init__(patients=patients, identifier=identifier, **kwargs)
+    def __init__(self, patients: List[Patient], **kwargs):
+        super().__init__(patients=patients, **kwargs)
 
     def __len__(self):
         return len(self.patients)
@@ -106,14 +116,6 @@ class PatientCollection(BaseModel):
 
     def __iter__(self) -> Iterator[Patient]:
         return self.patients.__iter__()
-
-    def __hash__(self):
-        return hash(self.uuid)
-
-    def __eq__(self, other: 'PatientCollection'):
-        if other.__class__ == self.__class__:
-            return self.json() == other.json()
-        return False
 
     @validator("patients")
     def _patients_validator(cls, patients: List[Patient], values):

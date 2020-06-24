@@ -15,6 +15,7 @@ log = logging.getLogger(__name__)
 
 
 class Round(PatientCollection):
+    identifier: int
     max_cost: float
     assigned_treatments: Optional[Dict[Patient, str]] = None
     results: Optional['Round.Results'] = None
@@ -29,7 +30,7 @@ class Round(PatientCollection):
         if max_cost is None:
             max_cost = math.inf
         self.update_forward_refs()  # needed to resolve the internal class Round.Results
-        super().__init__(patients, identifier, max_cost=max_cost)
+        super().__init__(patients, identifier=identifier, max_cost=max_cost)
 
     class Results(BaseModel):
         cost: float
@@ -111,7 +112,7 @@ class FakeClassifierPatientProvider(PatientProvider):
                 confidences[disease] = confidence_array[i]
                 # bringing some per-patient variance to the degree to which medicine is useful
                 treatment_effects[disease] = int(TYPICAL_TREATMENT_EFFECTS[disease] * np.random.random() * 2)
-            yield Patient(name, treatment_effects, confidences, disease)
+            yield Patient(name=name, disease=disease, treatment_effects=treatment_effects, confidences=confidences)
 
 
 # TODO: write tests (once we agree on the interface)
