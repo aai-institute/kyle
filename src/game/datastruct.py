@@ -10,7 +10,7 @@ from kale.util import get_first_duplicate
 
 class BaseModelWithUUID(BaseModel):
     """
-    Base class for models where the hash and equality are based on a uuid that is assigned during instatiation
+    Base class for models where the hash and equality are based on a uuid that is assigned during instantiation
     """
 
     # uuid is public because pydantic does not allow private fields without hacking around, see
