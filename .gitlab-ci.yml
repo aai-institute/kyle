@@ -5,6 +5,14 @@ stages:
   - package
   - pages
 
+before_script:
+  - >
+    export DOCKER_REGISTRY_ROBOT_ACCESS_KEY=$(
+    echo $DOCKER_REGISTRY_ROBOT_ACCESS_KEY | base64 -d)
+  - >
+    export DOCKER_REGISTRY_ROBOT_NAME=$(
+    echo $DOCKER_REGISTRY_ROBOT_NAME | base64 -d)
+
 tox:
   stage: tox
   script:
@@ -21,7 +29,26 @@ package:
     - python setup.py sdist bdist_wheel
   artifacts:
     paths:
-      - dist/*.whl
+      - dist
+
+pyodide:
+  stage: package
+  image: "docker-registry.aai.lab/infra/pyodide:v1.0.0"
+  script:
+    - KALE_VERSION=0.1.0
+    - export PYODIDE_PACKAGES="numpy,pydantic,kale,names"
+    - python setup.py sdist --formats=tar
+    - tar -C pyodide-packages/kale -xvf "dist/kale-${KALE_VERSION}.tar"
+    # HACK: we need to do dependency management on our own
+    - echo "" > pyodide-packages/kale/kale-${KALE_VERSION}/requirements.txt
+    - cp -r pyodide-packages/* /src/pyodide/packages
+    - (cd /src/pyodide && rm -r build && make)
+    # gitlab only takes artifacts relative to the repo...
+    # see https://gitlab.com/gitlab-org/gitlab-foss/-/issues/15530
+    - mv /src/pyodide/build .
+  artifacts:
+    paths:
+      - build
 
 pages:
   stage: pages

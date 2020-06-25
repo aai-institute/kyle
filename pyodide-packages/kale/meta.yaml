@@ -1,0 +1,10 @@
+package:
+  name: kale
+  version: 0.1.0
+source:
+# the unpacked source distribution should be placed next to the meta.yaml before the build
+  path: kale-0.1.0
+test:
+  imports:
+    - kale
+    - game
