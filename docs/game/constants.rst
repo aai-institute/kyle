@@ -1,6 +1,6 @@
 constants
 =========
 
-.. automodule:: kale.constants
+.. automodule:: game.constants
    :members:
    :undoc-members:

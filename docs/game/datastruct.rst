@@ -1,6 +1,6 @@
 datastruct
 ==========
 
-.. automodule:: kale.datastruct
+.. automodule:: game.datastruct
    :members:
    :undoc-members:

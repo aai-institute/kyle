@@ -49,7 +49,7 @@ def get_first_duplicate(seq: Sequence[T]) -> Optional[T]:
         set_of_elems.add(elem)
 
 
-def safe_accuracy_score(y_true: Sequence, y_pred: Sequence, **kwargs):
+def safe_accuracy_score(y_true: Sequence, y_pred: Sequence, **kwargs) -> float:
     """
     Wrapper around sklearn accuracy store that returns zero for empty sequences of labels
 
@@ -63,5 +63,5 @@ def safe_accuracy_score(y_true: Sequence, y_pred: Sequence, **kwargs):
     return accuracy_score(y_true, y_pred, **kwargs)
 
 
-def in_simplex(num_classes, x: np.ndarray):
+def in_simplex(num_classes, x: np.ndarray) -> bool:
     return len(x) == num_classes and np.isclose(sum(x), 1) and all(x >= 0) and all(x <= 1)

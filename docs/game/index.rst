@@ -1,7 +1,7 @@
-Library Modules
-===============
+Game Modules
+============
 
-.. automodule:: kale
+.. automodule:: game
    :members:
    :undoc-members:
 
