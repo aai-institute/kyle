@@ -1,7 +1,5 @@
 from typing import Iterable
 
-import pandas as pd
-
 from game.datastruct import Patient
 
 
@@ -25,6 +23,10 @@ def confidences_df(patients: Iterable[Patient]):
     :param patients:
     :return: data frame with patient names as columns and diseases as index
     """
+    try:
+        import pandas as pd
+    except ImportError:
+        raise ImportError(f"pandas is required in order to use dataframe based methods")
     df = pd.DataFrame({"Disease": sorted(get_all_present_diseases(patients))})
     for patient in patients:
         df[patient.name] = df["Disease"].apply(lambda disease: patient.confidences.get(disease, 0))
@@ -39,6 +41,10 @@ def treatment_effects_df(patients: Iterable[Patient]):
     :param patients:
     :return: data frame with patient names as columns and diseases as index
     """
+    try:
+        import pandas as pd
+    except ImportError:
+        raise ImportError(f"pandas is required in order to use dataframe based methods")
     df = pd.DataFrame({"Disease": sorted(get_all_present_diseases(patients))})
     for patient in patients:
         df[patient.name] = df["Disease"].apply(lambda disease: patient.treatment_effects.get(disease, 0))

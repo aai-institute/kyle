@@ -1,3 +1,5 @@
 tox
 jupyter
 pytest
+pandas
+matplotlib
