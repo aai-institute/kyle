@@ -1,7 +1,7 @@
 from typing import Dict, Sequence, Iterable, TypeVar, Optional
 
 import numpy as np
-from sklearn.metrics import accuracy_score
+# from sklearn.metrics import accuracy_score - see comment below, next to our implementation of accuracy_score
 
 T = TypeVar("T")
 S = TypeVar("S")
@@ -49,7 +49,8 @@ def get_first_duplicate(seq: Sequence[T]) -> Optional[T]:
         set_of_elems.add(elem)
 
 
-def safe_accuracy_score(y_true: Sequence, y_pred: Sequence, **kwargs) -> float:
+# NOTE: this should be adjusted in the pyodide-packaging independent version of kale
+def safe_accuracy_score(y_true: np.ndarray, y_pred: np.ndarray, **kwargs) -> float:
     """
     Wrapper around sklearn accuracy store that returns zero for empty sequences of labels
 
@@ -60,7 +61,26 @@ def safe_accuracy_score(y_true: Sequence, y_pred: Sequence, **kwargs) -> float:
     """
     if len(y_true) == len(y_pred) == 0:
         return 0
-    return accuracy_score(y_true, y_pred, **kwargs)
+    try:
+        from sklearn.metrics import accuracy_score
+        return accuracy_score(y_true, y_pred, **kwargs)
+    except ImportError:
+        if kwargs is not None:
+            raise NotImplementedError("kwargs are currently not supported in the pyodide-packaged version of kale")
+        return custom_accuracy_score(y_true, y_pred)
+
+
+# IMPORTANT: the only reason for this method is to not have sklearn as dependency in the pyodide
+# package (and thereby significantly reduce its size).
+# When and if we package kale as a separate library, independent of the pyodide packages and the game,
+# this method will be removed in favor of including sklearn as dependency
+def custom_accuracy_score(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    if y_true.shape != y_pred.shape:
+        raise Exception("unequal shapes")
+    if len(y_true.shape) != 1:
+        raise NotImplementedError("Only implemented for 1-dim. arrays in the pyodide-packaged version of kale")
+    return (y_true == y_pred).mean()
+
 
 
 def in_simplex(num_classes, x: np.ndarray) -> bool:

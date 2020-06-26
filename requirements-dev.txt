@@ -3,3 +3,4 @@ jupyter
 pytest
 pandas
 matplotlib
+scikit-learn

@@ -2,7 +2,6 @@ from typing import Union, Sequence
 
 import netcal.metrics
 import numpy as np
-from sklearn.metrics import accuracy_score
 
 from kale.util import safe_accuracy_score
 
@@ -37,7 +36,7 @@ class EvalStats:
         self.confidence_bins = np.digitize(x=self.confidences, bins=bin_boundaries, right=True) - 1
 
     def accuracy(self):
-        return accuracy_score(self.y_true, self.y_pred)
+        return safe_accuracy_score(self.y_true, self.y_pred)
 
     def expected_calibration_error(self):
         return netcal.metrics.ECE(self.bins).measure(self.confidences, self.y_true)
