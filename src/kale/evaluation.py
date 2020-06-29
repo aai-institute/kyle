@@ -1,9 +1,7 @@
 from typing import Union, Sequence
 
-import matplotlib.pyplot as plt
 import netcal.metrics
 import numpy as np
-from sklearn.metrics import accuracy_score
 
 from kale.util import safe_accuracy_score
 
@@ -38,7 +36,7 @@ class EvalStats:
         self.confidence_bins = np.digitize(x=self.confidences, bins=bin_boundaries, right=True) - 1
 
     def accuracy(self):
-        return accuracy_score(self.y_true, self.y_pred)
+        return safe_accuracy_score(self.y_true, self.y_pred)
 
     def expected_calibration_error(self):
         return netcal.metrics.ECE(self.bins).measure(self.confidences, self.y_true)
@@ -70,6 +68,10 @@ class EvalStats:
         return np.arange(self.bins) / self.bins, np.array(accuracies_per_bin)
 
     def plot_reliability_curves(self, class_labels: Sequence[Union[int, str]]):
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError:
+            raise ImportError(f"Plotting requires matplotlib being installed ")
         plt.figure()
         plt.title(f"Reliability curves")
         plt.xlabel("confidence")
