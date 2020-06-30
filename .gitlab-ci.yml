@@ -2,8 +2,7 @@ image: "python:3.8-buster"
 
 stages:
   - tox
-  - package
-  - pages
+  - publish
 
 before_script:
   - >
@@ -20,10 +19,13 @@ tox:
     - tox
   artifacts:
     paths:
+      - badges
       - docs/_build
+      - htmlcov
+      - pylint.html
 
 package:
-  stage: package
+  stage: publish
   script:
     - pip install setuptools wheel
     - python setup.py sdist bdist_wheel
@@ -32,7 +34,7 @@ package:
       - dist
 
 pyodide:
-  stage: package
+  stage: publish
   image: "docker-registry.aai.lab/infra/pyodide:v1.0.0"
   script:
     - KALE_VERSION=0.1.0
@@ -51,12 +53,13 @@ pyodide:
       - build
 
 pages:
-  stage: pages
+  stage: publish
   dependencies:
     - tox
   script:
-    - mkdir -p public
-    - mv docs/_build/html/* public
+    - mv docs/_build/html/* public/docs
+    - mv pylint.html public/pylint/index.html
+    - mv htmlcov/* public/coverage
   artifacts:
     paths:
     - public
