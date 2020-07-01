@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!--IMPORTANT: The results of the pyodide build, i.e. all files in the "build" artifact, have to be placed
+into the pyodide directory. Manually, for now. We will address the packaging of them (20MB at the moment)
+at some point in the future-->
+<html lang="en">
+<head>
+    <script type="text/javascript">
+        // set the pyodide files URL (packages.json, pyodide.asm.data etc)
+        window.languagePluginUrl = 'pyodide/pyodide';
+    </script>
+    <script src="pyodide/pyodide.js"></script>
+    <title>Sample usage of our custom pyodide packages</title>
+</head>
+<body>
+  Pyodide test page <br>
+  Open your browser console to see pyodide output
+  <script type="text/javascript">
+
+        languagePluginLoader.then(function () {
+            pyodide.loadPackage(['kale', 'numpy', 'pydantic', 'names']).then( () => {
+                console.log(pyodide.runPython("\n" +
+                    "from game.game import Game, FakeClassifierPatientProvider\n" +
+                    "from game.constants import Disease\n" +
+                    "from game.util import confidences_df, treatment_effects_df\n" +
+                    "from kale.sampling.fake_clf import DirichletFC"))
+                console.log(pyodide.runPython('\n' +
+                    'fake_clf = DirichletFC(len(list(Disease)))\n' +
+                    'patient_provider = FakeClassifierPatientProvider(fake_clf)\n' +
+                    'game = Game(patient_provider)\n' +
+                    'game.start_new_round(3)'));
+            });
+
+        });
+  </script>
+</body>
