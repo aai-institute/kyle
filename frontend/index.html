@@ -14,22 +14,6 @@ at some point in the future-->
 <body>
   Pyodide test page <br>
   Open your browser console to see pyodide output
-  <script type="text/javascript">
-
-        languagePluginLoader.then(function () {
-            pyodide.loadPackage(['kale', 'numpy', 'pydantic', 'names']).then( () => {
-                console.log(pyodide.runPython("\n" +
-                    "from game.game import Game, FakeClassifierPatientProvider\n" +
-                    "from game.constants import Disease\n" +
-                    "from game.util import confidences_df, treatment_effects_df\n" +
-                    "from kale.sampling.fake_clf import DirichletFC"))
-                console.log(pyodide.runPython('\n' +
-                    'fake_clf = DirichletFC(len(list(Disease)))\n' +
-                    'patient_provider = FakeClassifierPatientProvider(fake_clf)\n' +
-                    'game = Game(patient_provider)\n' +
-                    'game.start_new_round(3)'));
-            });
-
-        });
+  <script src="game_testing.js">
   </script>
 </body>
