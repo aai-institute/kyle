@@ -49,7 +49,9 @@ class SufficientlyConfidentFC(FakeClassifier):
         self.alpha = np.ones((self.num_classes, self.num_classes))
         self.simplex_automorphisms: List[SimplexAutomorphism] = \
             [IdentitySimplexAutomorphism(self.num_classes)] * self.num_classes
-        self._rng = np.random.default_rng()
+        # pyodide uses an older version of numpy which does not have the default_rng
+        # self._rng = np.random.default_rng()
+        self._rng = np.random
 
     def _unit_vector(self, i: int):
         e_i = np.zeros(self.num_classes)
@@ -100,7 +102,9 @@ class DirichletFC(FakeClassifier):
         self.simplex_automorphism: SimplexAutomorphism = \
             IdentitySimplexAutomorphism(self.num_classes) if simplex_automorphism is None \
             else self.set_simplex_automorphism(simplex_automorphism)
-        self._rng = np.random.default_rng()
+        # pyodide uses an older version of numpy which does not have the default_rng
+        # self._rng = np.random.default_rng()
+        self._rng = np.random
 
     def set_alpha(self, alpha: np.ndarray):
         if not alpha.shape == (self.num_classes, ):
