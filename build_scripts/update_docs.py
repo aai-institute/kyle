@@ -86,4 +86,3 @@ def make_docu(basedir=os.path.join("src", "kale"), overwrite=False):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     make_docu()
-    make_docu(basedir=os.path.join("src", "game"))

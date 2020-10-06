@@ -1,9 +1,0 @@
-package:
-  name: names
-  version: 0.3.0
-source:
-  sha256: 726e46254f2ed03f1ffb5d941dae3bc67c35123941c29becd02d48d0caa2a671
-  url: https://files.pythonhosted.org/packages/44/4e/f9cb7ef2df0250f4ba3334fbdabaa94f9c88097089763d8e85ada8092f84/names-0.3.0.tar.gz
-test:
-  imports:
-  - names

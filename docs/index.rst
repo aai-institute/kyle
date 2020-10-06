@@ -12,7 +12,6 @@ kale library and game
    :caption: Modules
 
    kale/index
-   game/index
 
 
 
