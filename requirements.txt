@@ -1,3 +1,2 @@
 numpy==1.18.4
-pydantic==1.5.1
 names==0.3.0
