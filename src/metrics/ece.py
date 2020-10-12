@@ -1,4 +1,6 @@
+from typing import Union
 import numpy as np
+
 from netcal.metrics import ECE as netcal_ECE
 
 from metrics.base_calibration_error import BaseCalibrationError
@@ -9,8 +11,9 @@ class ECE(BaseCalibrationError):
         super(ECE, self).__init__()
         self.netcal_ece = netcal_ECE(bins=bins)
 
-    def measure(self, confidences: np.ndarray, ground_truth: np.ndarray, **kwargs):
-        error_message = self.validate_input(confidences, ground_truth)
-        if error_message is not None:
+    def measure(self, confidences: np.ndarray, ground_truth: np.ndarray, **kwargs)\
+            -> Union[float, np.ndarray, ValueError]:
+        input_is_invalid, error_message = self.check_input_is_invalid(confidences, ground_truth)
+        if input_is_invalid:
             raise ValueError(error_message)
         return self.netcal_ece.measure(confidences, ground_truth, **kwargs)
