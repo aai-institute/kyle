@@ -7,6 +7,7 @@ from metrics.base_calibration_error import BaseCalibrationError
 
 
 class MCE(BaseCalibrationError):
+    """Maximum Calibration Error. Wraps around netcal's implementation - for further reading refer to netcal's docs."""
     def __init__(self, bins: int = 10):
         super(MCE, self).__init__()
         self.netcal_mce = netcal_MCE(bins=bins)

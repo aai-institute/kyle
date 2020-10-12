@@ -7,6 +7,7 @@ from metrics.base_calibration_error import BaseCalibrationError
 
 
 class ECE(BaseCalibrationError):
+    """Expected Calibration Error. Wraps around netcal's implementation - for further reading refer to netcal's docs."""
     def __init__(self, bins: int = 10):
         super(ECE, self).__init__()
         self.netcal_ece = netcal_ECE(bins=bins)
