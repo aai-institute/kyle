@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-test_requirements = ['pytest']
+test_requirements = ['pytest', 'torch', 'netcal']
 docs_requirements = ['Sphinx==2.4.2', 'sphinxcontrib-websupport==1.2.0', 'sphinx_rtd_theme']
 
 setup(
