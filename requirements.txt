@@ -1,2 +1,2 @@
-numpy==1.18.4
+numpy
 names==0.3.0
