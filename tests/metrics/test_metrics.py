@@ -1,7 +1,7 @@
 import pytest
 
 from metrics import ECE, MCE, ACE
-from tests.metrics.test_util import sample_confs_from_dirichlet
+from tests.metrics.utils import sample_confs_from_dirichlet
 
 
 @pytest.fixture()
