@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-test_requirements = ['pytest', 'torch', 'netcal']
+test_requirements = ['pytest']
 docs_requirements = ['Sphinx==2.4.2', 'sphinxcontrib-websupport==1.2.0', 'sphinx_rtd_theme']
 
 setup(
@@ -10,7 +10,7 @@ setup(
     include_package_data=True,
     version='0.1.0',
     description='Library for kale',
-    install_requires=open("requirements.txt").readlines(),
+    install_requires=['numpy', 'torch', 'netcal'],
     setup_requires=["wheel"],
     tests_require=test_requirements,
     extras_require={
