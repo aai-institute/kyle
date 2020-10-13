@@ -6,3 +6,5 @@ anybadge
 pandas
 matplotlib
 scikit-learn
+torch
+netcal
