@@ -3,7 +3,7 @@ import numpy as np
 
 from netcal.metrics import ACE as netcal_ACE
 
-from metrics.base_calibration_error import BaseCalibrationError
+from kale.metrics.base_calibration_error import BaseCalibrationError
 
 
 class ACE(BaseCalibrationError):
