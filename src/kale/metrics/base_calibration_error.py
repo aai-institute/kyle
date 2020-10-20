@@ -29,5 +29,12 @@ class BaseCalibrationError(ABC):
         return False, None
 
     @abstractmethod
-    def measure(self, confidences: np.ndarray, ground_truth: np.ndarray):
+    def _compute(self, confidences: np.ndarray, ground_truth: np.ndarray, **kwargs) \
+            -> Union[float, np.ndarray, ValueError]:
         pass
+
+    def compute(self, confidences: np.ndarray, ground_truth: np.ndarray, **kwargs):
+        input_is_invalid, error_message = self.check_input_is_invalid(confidences, ground_truth)
+        if input_is_invalid:
+            raise ValueError(error_message)
+        return self._compute(confidences, ground_truth, **kwargs)

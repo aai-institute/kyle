@@ -12,9 +12,6 @@ class ACE(BaseCalibrationError):
         super(ACE, self).__init__()
         self.netcal_ace = netcal_ACE(bins=bins)
 
-    def measure(self, confidences: np.ndarray, ground_truth: np.ndarray, **kwargs)\
+    def _compute(self, confidences: np.ndarray, ground_truth: np.ndarray, **kwargs)\
             -> Union[float, np.ndarray, ValueError]:
-        input_is_invalid, error_message = self.check_input_is_invalid(confidences, ground_truth)
-        if input_is_invalid:
-            raise ValueError(error_message)
         return self.netcal_ace.measure(confidences, ground_truth, **kwargs)
