@@ -51,10 +51,9 @@ class SKCE(BaseCalibrationError):
         self.__kernel_type = value
 
     def compute_kernel(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
-        """Compute kernel based on selected type."""
-        if self.__kernel_type == 'rbf':
+        if self.__kernel_type == KernelType.rbf:
             result = rbf_kernel(x, y)
-        elif self.__kernel_type == 'laplacian':
+        elif self.__kernel_type == KernelType.laplacian:
             result = laplacian_kernel(x, y)
         else:
             result = linear_kernel(x, y)
@@ -69,10 +68,10 @@ class SKCE(BaseCalibrationError):
 
         Parameters
         ----------
-        X : np.ndarray, shape=(n_samples, [n_classes])
+        confidences : np.ndarray, shape=(n_samples, [n_classes])
             NumPy array with confidence values for each prediction.
             1-D for binary classification, 2-D for multi class (softmax).
-        y : np.ndarray, shape=(n_samples,)
+        ground_truth : np.ndarray, shape=(n_samples,)
             NumPy 1-D array with ground truth labels.
 
         Returns
@@ -84,6 +83,8 @@ class SKCE(BaseCalibrationError):
         unit_vectors = np.zeros_like(confidences)
         unit_vectors[np.arange(ground_truth.size), ground_truth] = 1
         error = 0
+
+        # Compute kernel
         kernel_matrix = self.compute_kernel(confidences, confidences)
 
         # (Squared) Equation (4) from Widmann, Lindsten and Zachariah (NeurIPS 2019)
