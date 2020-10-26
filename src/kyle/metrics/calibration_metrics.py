@@ -1,5 +1,4 @@
 from abc import abstractmethod
-from typing import Union
 
 import numpy as np
 from netcal.metrics import ACE as netcal_ACE, ECE as netcal_ECE, MCE as netcal_MCE
@@ -12,7 +11,7 @@ class BaseCalibrationError:
 
     @abstractmethod
     def _compute(self, confidences: np.ndarray, ground_truth: np.ndarray, **kwargs) \
-            -> Union[float, np.ndarray, ValueError]:
+            -> float:
         pass
 
     def compute(self, confidences: np.ndarray, ground_truth: np.ndarray, **kwargs):
@@ -29,7 +28,7 @@ class ACE(BaseCalibrationError):
         self.netcal_ace = netcal_ACE(bins=bins)
 
     def _compute(self, confidences: np.ndarray, ground_truth: np.ndarray, **kwargs) \
-            -> Union[float, np.ndarray, ValueError]:
+            -> float:
         return self.netcal_ace.measure(confidences, ground_truth, **kwargs)
 
 
@@ -41,7 +40,7 @@ class ECE(BaseCalibrationError):
         self.netcal_ece = netcal_ECE(bins=bins)
 
     def _compute(self, confidences: np.ndarray, ground_truth: np.ndarray, **kwargs) \
-            -> Union[float, np.ndarray, ValueError]:
+            -> float:
         return self.netcal_ece.measure(confidences, ground_truth, **kwargs)
 
 
@@ -53,5 +52,5 @@ class MCE(BaseCalibrationError):
         self.netcal_mce = netcal_MCE(bins=bins)
 
     def _compute(self, confidences: np.ndarray, ground_truth: np.ndarray, **kwargs) \
-            -> Union[float, np.ndarray, ValueError]:
+            -> float:
         return self.netcal_mce.measure(confidences, ground_truth, **kwargs)
