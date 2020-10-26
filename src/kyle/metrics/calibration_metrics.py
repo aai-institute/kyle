@@ -3,17 +3,18 @@ from abc import abstractmethod, ABC
 import netcal.metrics
 import numpy as np
 
+from kyle.util import in_simplex
+
 
 class BaseCalibrationError(ABC):
-
     @abstractmethod
     def _compute(self, confidences: np.ndarray, ground_truth: np.ndarray, **kwargs) \
             -> float:
         pass
 
     def compute(self, confidences: np.ndarray, ground_truth: np.ndarray, **kwargs):
-        if not np.allclose(np.sum(confidences, axis=1), 1.0, rtol=0.01):
-            raise ValueError("Confidences invalid. Probabilities should sum to one.")
+        if not in_simplex(len(confidences), confidences):
+            raise ValueError("Confidences invalid.")
         return self._compute(confidences, ground_truth, **kwargs)
 
     def __str__(self):

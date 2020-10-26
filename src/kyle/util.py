@@ -64,4 +64,4 @@ def safe_accuracy_score(y_true: np.ndarray, y_pred: np.ndarray, **kwargs) -> flo
 
 
 def in_simplex(num_classes, x: np.ndarray) -> bool:
-    return len(x) == num_classes and np.isclose(sum(x), 1) and all(x >= 0) and all(x <= 1)
+    return len(x) == num_classes and np.isclose(np.sum(x), 1) and all(x >= 0) and all(x <= 1)

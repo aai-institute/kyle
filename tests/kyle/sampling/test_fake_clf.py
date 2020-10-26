@@ -1,4 +1,4 @@
-from kale.sampling.fake_clf import SufficientlyConfidentFC, DirichletFC
+from kyle.sampling.fake_clf import SufficientlyConfidentFC, DirichletFC
 
 
 def test_SufficientlyConfidentFC():
