@@ -1,11 +1,11 @@
-from typing import Union, Tuple
+from typing import Union
 import numpy as np
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from netcal.metrics import ACE as netcal_ACE, ECE as netcal_ECE, MCE as netcal_MCE
 
 
-class BaseCalibrationError(ABC):
+class BaseCalibrationError:
 
     def __init__(self):
         pass
