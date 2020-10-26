@@ -5,7 +5,7 @@ from kale.metrics import ECE, MCE, ACE
 from kale.sampling.fake_clf import DirichletFC
 
 
-@pytest.fixture()
+@pytest.fixture(scope="module")
 def criteria():
     criteria = [ECE(), MCE(), ACE()]
     return criteria
