@@ -1,6 +1,7 @@
 from typing import Dict, Sequence, Iterable, TypeVar, Optional
 
 import numpy as np
+
 # from sklearn.metrics import accuracy_score - see comment below, next to our implementation of accuracy_score
 
 T = TypeVar("T")
@@ -49,7 +50,7 @@ def get_first_duplicate(seq: Sequence[T]) -> Optional[T]:
         set_of_elems.add(elem)
 
 
-# NOTE: this should be adjusted in the pyodide-packaging independent version of kale
+# NOTE: this should be adjusted in the pyodide-packaging independent version of kyle
 def safe_accuracy_score(y_true: np.ndarray, y_pred: np.ndarray, **kwargs) -> float:
     """
     Wrapper around sklearn accuracy store that returns zero for empty sequences of labels
@@ -66,19 +67,19 @@ def safe_accuracy_score(y_true: np.ndarray, y_pred: np.ndarray, **kwargs) -> flo
         return accuracy_score(y_true, y_pred, **kwargs)
     except ImportError:
         if kwargs is not None:
-            raise NotImplementedError("kwargs are currently not supported in the pyodide-packaged version of kale")
+            raise NotImplementedError("kwargs are currently not supported in the pyodide-packaged version of kyle")
         return custom_accuracy_score(y_true, y_pred)
 
 
 # IMPORTANT: the only reason for this method is to not have sklearn as dependency in the pyodide
 # package (and thereby significantly reduce its size).
-# When and if we package kale as a separate library, independent of the pyodide packages and the game,
+# When and if we package kyle as a separate library, independent of the pyodide packages and the game,
 # this method will be removed in favor of including sklearn as dependency
 def custom_accuracy_score(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     if y_true.shape != y_pred.shape:
         raise Exception("unequal shapes")
     if len(y_true.shape) != 1:
-        raise NotImplementedError("Only implemented for 1-dim. arrays in the pyodide-packaged version of kale")
+        raise NotImplementedError("Only implemented for 1-dim. arrays in the pyodide-packaged version of kyle")
     return (y_true == y_pred).mean()
 
 

@@ -3,7 +3,7 @@ from typing import Union, Sequence
 import netcal.metrics
 import numpy as np
 
-from kale.util import safe_accuracy_score
+from kyle.util import safe_accuracy_score
 
 
 class EvalStats:

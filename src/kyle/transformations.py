@@ -3,7 +3,7 @@ from typing import Callable
 
 import numpy as np
 
-from kale.util import in_simplex
+from kyle.util import in_simplex
 
 
 class SimplexAutomorphism(ABC):

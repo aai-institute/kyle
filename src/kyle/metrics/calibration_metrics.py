@@ -1,7 +1,7 @@
-from typing import Union
-import numpy as np
-
 from abc import abstractmethod
+from typing import Union
+
+import numpy as np
 from netcal.metrics import ACE as netcal_ACE, ECE as netcal_ECE, MCE as netcal_MCE
 
 

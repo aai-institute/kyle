@@ -3,8 +3,8 @@ from typing import Sequence, List, Tuple, Union
 
 import numpy as np
 
-from kale.transformations import IdentitySimplexAutomorphism, SimplexAutomorphism, ShiftingSimplexAutomorphism
-from kale.util import in_simplex
+from kyle.transformations import IdentitySimplexAutomorphism, SimplexAutomorphism, ShiftingSimplexAutomorphism
+from kyle.util import in_simplex
 
 
 class FakeClassifier(ABC):
