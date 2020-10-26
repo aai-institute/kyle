@@ -1,13 +1,10 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 
+import netcal.metrics
 import numpy as np
-from netcal.metrics import ACE as netcal_ACE, ECE as netcal_ECE, MCE as netcal_MCE
 
 
-class BaseCalibrationError:
-
-    def __init__(self):
-        pass
+class BaseCalibrationError(ABC):
 
     @abstractmethod
     def _compute(self, confidences: np.ndarray, ground_truth: np.ndarray, **kwargs) \
@@ -19,38 +16,35 @@ class BaseCalibrationError:
             raise ValueError("Confidences invalid. Probabilities should sum to one.")
         return self._compute(confidences, ground_truth, **kwargs)
 
+    def __str__(self):
+        return self.__class__.__name__
 
-class ACE(BaseCalibrationError):
+
+class NetcalCalibrationError(ABC):
+    def __init__(self, netcal_metric):
+        """
+        Instance of a netcal metric class, e.g. netcal.metrics.ECE
+        """
+        self.netcal_metric = netcal_metric
+
+    def _compute(self, confidences: np.ndarray, ground_truth: np.ndarray, **kwargs) \
+            -> float:
+        return self.netcal_metric.measure(confidences, ground_truth, **kwargs)
+
+
+class ACE(NetcalCalibrationError):
     """Average Calibration Error. Wraps around netcal's implementation - for further reading refer to netcal's docs."""
-
     def __init__(self, bins: int = 10):
-        super(ACE, self).__init__()
-        self.netcal_ace = netcal_ACE(bins=bins)
-
-    def _compute(self, confidences: np.ndarray, ground_truth: np.ndarray, **kwargs) \
-            -> float:
-        return self.netcal_ace.measure(confidences, ground_truth, **kwargs)
+        super(ACE, self).__init__(netcal.metrics.ACE(bins))
 
 
-class ECE(BaseCalibrationError):
+class ECE(NetcalCalibrationError):
     """Expected Calibration Error. Wraps around netcal's implementation - for further reading refer to netcal's docs."""
-
     def __init__(self, bins: int = 10):
-        super(ECE, self).__init__()
-        self.netcal_ece = netcal_ECE(bins=bins)
-
-    def _compute(self, confidences: np.ndarray, ground_truth: np.ndarray, **kwargs) \
-            -> float:
-        return self.netcal_ece.measure(confidences, ground_truth, **kwargs)
+        super().__init__(netcal.metrics.ECE(bins))
 
 
-class MCE(BaseCalibrationError):
+class MCE(NetcalCalibrationError):
     """Maximum Calibration Error. Wraps around netcal's implementation - for further reading refer to netcal's docs."""
-
     def __init__(self, bins: int = 10):
-        super(MCE, self).__init__()
-        self.netcal_mce = netcal_MCE(bins=bins)
-
-    def _compute(self, confidences: np.ndarray, ground_truth: np.ndarray, **kwargs) \
-            -> float:
-        return self.netcal_mce.measure(confidences, ground_truth, **kwargs)
+        super().__init__(netcal.metrics.MCE(bins))
