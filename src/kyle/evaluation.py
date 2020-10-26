@@ -1,5 +1,6 @@
 from typing import Union, Sequence
 
+import matplotlib.pyplot as plt
 import netcal.metrics
 import numpy as np
 
@@ -68,10 +69,6 @@ class EvalStats:
         return np.arange(self.bins) / self.bins, np.array(accuracies_per_bin)
 
     def plot_reliability_curves(self, class_labels: Sequence[Union[int, str]]):
-        try:
-            import matplotlib.pyplot as plt
-        except ImportError:
-            raise ImportError(f"Plotting requires matplotlib being installed ")
         plt.figure()
         plt.title(f"Reliability curves")
         plt.xlabel("confidence")
