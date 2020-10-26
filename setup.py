@@ -10,7 +10,7 @@ setup(
     include_package_data=True,
     version='0.1.0',
     description='Library for kale',
-    install_requires=['numpy', 'torch', 'netcal'],
+    install_requires=open("requirements.txt").readlines(),
     setup_requires=["wheel"],
     tests_require=test_requirements,
     extras_require={
