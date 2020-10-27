@@ -29,6 +29,8 @@ class TemperatureScaling(BaseCalibrationMethod):
         calibrated_confs = self.netcal_temp_scaling.transform(confidences)
 
         if calibrated_confs.ndim < 2:
-            calibrated_confs = np.vstack((np.subtract(1, calibrated_confs), calibrated_confs)).T
+            calibrated_confs = np.vstack(
+                (np.subtract(1, calibrated_confs), calibrated_confs)
+            ).T
 
         return calibrated_confs

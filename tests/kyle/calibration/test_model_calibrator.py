@@ -9,9 +9,17 @@ from kyle.models import CalibratableModel
 
 @pytest.fixture(scope="module")
 def dataset():
-    X, y = datasets.make_classification(n_samples=2000, n_features=20, n_informative=7, n_redundant=10,
-                                        n_classes=2, random_state=42)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X, y = datasets.make_classification(
+        n_samples=2000,
+        n_features=20,
+        n_informative=7,
+        n_redundant=10,
+        n_classes=2,
+        random_state=42,
+    )
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
 
     return X_train, X_test, y_train, y_test
 

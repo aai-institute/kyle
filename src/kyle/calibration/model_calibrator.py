@@ -4,8 +4,14 @@ from kyle.models import CalibratableModel
 
 
 class ModelCalibrator:
-    def __init__(self, calibratable_model: CalibratableModel, X_calibrate: np.ndarray, y_calibrate: np.ndarray,
-                 X_fit: np.ndarray = None, y_fit: np.ndarray = None):
+    def __init__(
+        self,
+        calibratable_model: CalibratableModel,
+        X_calibrate: np.ndarray,
+        y_calibrate: np.ndarray,
+        X_fit: np.ndarray = None,
+        y_fit: np.ndarray = None,
+    ):
         self.calibratable_model = calibratable_model
         self.X_calibrate = X_calibrate
         self.y_calibrate = y_calibrate
