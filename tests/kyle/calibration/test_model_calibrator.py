@@ -42,10 +42,14 @@ def calibrator(dataset, calibratable_model):
     return calibrator
 
 
-def test_calibrator_CalibrateOnValSetAfterSettingValSet(dataset, calibratable_model, calibrator):
+def test_calibrator_CalibrateOnValSetAfterSettingValSet(
+    dataset, calibratable_model, calibrator
+):
     _, X_val, _, y_val = dataset
     calibrator.set_validation_data(X_val, y_val)
-    assert isinstance(calibrator.calibrate(calibratable_model, fit=True), CalibratableModel)
+    assert isinstance(
+        calibrator.calibrate(calibratable_model, fit=True), CalibratableModel
+    )
 
 
 def test_calibrator_errorCalibrateOnValSetWithoutSettingValSet(dataset, calibrator):
