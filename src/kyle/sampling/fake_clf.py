@@ -78,7 +78,7 @@ class SufficientlyConfidentFC(FakeClassifier):
         self.simplex_automorphisms[component] = aut
 
     def set_predicted_class_weights(self, weights: np.ndarray):
-        if not in_simplex(self.num_classes, weights):
+        if not in_simplex(weights, self.num_classes):
             raise ValueError("Invalid weights array: must be in simplex")
 
     # TODO or not TODO: this could be vectorized, removing the need for get_sample_array
@@ -144,7 +144,7 @@ class SufficientlyConfidentFCBuilder:
             [IdentitySimplexAutomorphism(self.num_classes)] * self.num_classes
 
     def with_predicted_class_weights(self, weights: np.ndarray):
-        if not in_simplex(self.num_classes, weights):
+        if not in_simplex(weights, self.num_classes):
             raise ValueError(f"Input has to be from a {self.num_classes - 1} dimensional simplex")
         self.predicted_class_weights = weights
         return self

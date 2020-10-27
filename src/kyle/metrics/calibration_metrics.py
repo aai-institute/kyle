@@ -13,8 +13,8 @@ class BaseCalibrationError(ABC):
         pass
 
     def compute(self, confidences: np.ndarray, ground_truth: np.ndarray, **kwargs):
-        if not in_simplex(len(confidences), confidences):
-            raise ValueError("Confidences invalid.")
+        if not in_simplex(confidences):
+            raise ValueError("Invalid confidences array")
         return self._compute(confidences, ground_truth, **kwargs)
 
     def __str__(self):

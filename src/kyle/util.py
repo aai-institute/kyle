@@ -63,5 +63,19 @@ def safe_accuracy_score(y_true: np.ndarray, y_pred: np.ndarray, **kwargs) -> flo
     return accuracy_score(y_true, y_pred, **kwargs)
 
 
-def in_simplex(num_classes, x: np.ndarray) -> bool:
-    return len(x) == num_classes and np.isclose(np.sum(x), 1) and all(x >= 0) and all(x <= 1)
+def in_simplex(confidences: np.ndarray, num_classes=None) -> bool:
+    """
+
+    :param confidences: single vector of confidences of shape (n_classes,) or multiple
+        vectors as array of shape (n_samples, n_classes)
+    :param num_classes: if provided, will check whether confidences have the correct number of classes
+    :return:
+    """
+    if len(confidences.shape) == 1:
+        confidences = np.expand_dims(confidences, axis=0)
+    if num_classes is None:
+        num_classes = confidences.shape[1]
+
+    return confidences.shape[1] == num_classes and \
+        np.allclose(np.sum(confidences, axis=1), 1.0, rtol=0.01) \
+        and (confidences >= 0).all() and (confidences <= 1).all()

@@ -23,10 +23,10 @@ class SimplexAutomorphism(ABC):
         pass
 
     def transform(self, x: np.ndarray):
-        if not in_simplex(self.num_classes, x):
+        if not in_simplex(x, self.num_classes):
             raise ValueError(f"Input has to be from a {self.num_classes - 1} dimensional simplex")
         x = self._transform(x.copy())
-        if not in_simplex(self.num_classes, x):
+        if not in_simplex(x, self.num_classes):
             raise Exception(f"Bad implementation: Output has to be from a {self.num_classes - 1} dimensional simplex")
         return x
 
