@@ -12,7 +12,10 @@ from kyle.util import in_simplex
 
 
 class FakeClassifier(ABC):
-    num_classes: int
+    def __init__(self, num_classes: int):
+        if num_classes < 1:
+            raise ValueError(f"{self.__class__.__name__} requires at least two classes")
+        self.num_classes = num_classes
 
     @abstractmethod
     def get_sample(self) -> Tuple[int, np.ndarray]:
@@ -47,10 +50,7 @@ class SufficientlyConfidentFC(FakeClassifier):
     """
 
     def __init__(self, num_classes: int):
-        assert (
-            num_classes > 1
-        ), f"{self.__class__.__name__} requires at least two classes"
-        self.num_classes = num_classes
+        super().__init__(num_classes)
         self.predicted_class_weights: np.ndarray = (
             np.ones(self.num_classes) / self.num_classes
         )
@@ -120,28 +120,28 @@ class DirichletFC(FakeClassifier):
         alpha: np.ndarray = None,
         simplex_automorphism: SimplexAutomorphism = None,
     ):
-        assert (
-            num_classes > 1
-        ), f"{self.__class__.__name__} requires at least two classes"
-        self.num_classes = num_classes
-        self.alpha = (
-            np.ones(self.num_classes) if alpha is None else self.set_alpha(alpha)
-        )
-        self.simplex_automorphism: SimplexAutomorphism = (
-            IdentitySimplexAutomorphism(self.num_classes)
-            if simplex_automorphism is None
-            else self.set_simplex_automorphism(simplex_automorphism)
-        )
-        # pyodide uses an older version of numpy which does not have the default_rng
-        # self._rng = np.random.default_rng()
-        self._rng = np.random
+        super().__init__(num_classes)
+        self.alpha = None
+        self.simplex_automorphism = None
+        self._rng = np.random.default_rng()
 
-    def set_alpha(self, alpha: np.ndarray):
+        self.set_simplex_automorphism(simplex_automorphism)
+        self.set_alpha(alpha)
+
+    def set_alpha(self, alpha: Union[np.ndarray, None]):
+        """
+        :param alpha: if None, the default value of [1, ..., 1] will be set
+        """
+        if alpha is None:
+            alpha = np.ones(self.num_classes)
         if not alpha.shape == (self.num_classes,):
             raise ValueError(f"Wrong shape of alpha: {alpha.shape}")
         self.alpha = alpha
 
     def set_simplex_automorphism(self, aut: Union[SimplexAutomorphism, None]) -> None:
+        """
+        :param aut: if None, the identity automorphism will be set
+        """
         if aut is None:
             aut = IdentitySimplexAutomorphism(self.num_classes)
         if aut.num_classes != self.num_classes:
