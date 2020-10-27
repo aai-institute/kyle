@@ -4,7 +4,7 @@ test_requirements = ['pytest']
 docs_requirements = ['Sphinx==2.4.2', 'sphinxcontrib-websupport==1.2.0', 'sphinx_rtd_theme']
 
 setup(
-    name='kale',
+    name='kyle',
     package_dir={"": "src"},
     packages=find_packages(where="src"),
     include_package_data=True,
@@ -17,5 +17,5 @@ setup(
         "test": test_requirements,
         "docs": docs_requirements
     },
-    author='Miguel and Mischa'
+    author='appliedAI'
 )
