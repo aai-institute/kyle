@@ -12,6 +12,7 @@ class SimplexAutomorphism(ABC):
 
     :param num_classes: The dimension of the simplex vector. This equals 1 + (dimension of the simplex as manifold)
     """
+
     def __init__(self, num_classes: int):
         self.num_classes = num_classes
 
@@ -24,10 +25,14 @@ class SimplexAutomorphism(ABC):
 
     def transform(self, x: np.ndarray):
         if not in_simplex(x, self.num_classes):
-            raise ValueError(f"Input has to be from a {self.num_classes - 1} dimensional simplex")
+            raise ValueError(
+                f"Input has to be from a {self.num_classes - 1} dimensional simplex"
+            )
         x = self._transform(x.copy())
         if not in_simplex(x, self.num_classes):
-            raise Exception(f"Bad implementation: Output has to be from a {self.num_classes - 1} dimensional simplex")
+            raise Exception(
+                f"Bad implementation: Output has to be from a {self.num_classes - 1} dimensional simplex"
+            )
         return x
 
 
@@ -45,15 +50,20 @@ class SingleComponentSimplexAutomorphism(SimplexAutomorphism):
     :param component: integer in range [0, num_classes - 1], corresponding to the component on which to apply the mapping
     :param mapping: map from the unit interval [0,1] to itself
     """
-    def __init__(self, num_classes: int, component: int, mapping: Callable[[float], float]):
-        assert 0 <= component < num_classes, "Selected component should be in the range [0, num_classes - 1]"
+
+    def __init__(
+        self, num_classes: int, component: int, mapping: Callable[[float], float]
+    ):
+        assert (
+            0 <= component < num_classes
+        ), "Selected component should be in the range [0, num_classes - 1]"
         self.component = component
         self.mapping = mapping
         super().__init__(num_classes)
 
     def _transform(self, x: np.ndarray) -> np.ndarray:
         x[self.component] = self.mapping(x[self.component])
-        return x/x.sum()
+        return x / x.sum()
 
 
 class ScalingSimplexAutomorphism(SimplexAutomorphism):
@@ -81,6 +91,7 @@ class MaxComponentSimplexAutomorphism(SimplexAutomorphism):
     :param num_classes:
     :param mapping: map from the unit interval [0,1] to itself
     """
+
     def __init__(self, num_classes, mapping: Callable[[float], float]):
         self.mapping = mapping
         super().__init__(num_classes)
@@ -88,7 +99,7 @@ class MaxComponentSimplexAutomorphism(SimplexAutomorphism):
     def _transform(self, x: np.ndarray) -> np.ndarray:
         i = x.argmax()
         x[i] = self.mapping(x[i])
-        return x/x.sum()
+        return x / x.sum()
 
 
 class ShiftingSimplexAutomorphism(SimplexAutomorphism):
@@ -97,6 +108,7 @@ class ShiftingSimplexAutomorphism(SimplexAutomorphism):
 
     :param shifting_vector: numpy array with positive entries of shape (num_classes, )
     """
+
     def __init__(self, shifting_vector: np.ndarray):
         self.shifting_vector = shifting_vector
         super().__init__(len(shifting_vector))
@@ -120,6 +132,7 @@ class PowerLawSimplexAutomorphism(SimplexAutomorphism):
 
     :param exponents: numpy array of shape (num_classes, )
     """
+
     def __init__(self, exponents: np.ndarray):
         self.exponents = exponents
         super().__init__(len(exponents))

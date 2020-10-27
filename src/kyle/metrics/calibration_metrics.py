@@ -8,8 +8,9 @@ from kyle.util import in_simplex
 
 class BaseCalibrationError(ABC):
     @abstractmethod
-    def _compute(self, confidences: np.ndarray, ground_truth: np.ndarray, **kwargs) \
-            -> float:
+    def _compute(
+        self, confidences: np.ndarray, ground_truth: np.ndarray, **kwargs
+    ) -> float:
         pass
 
     def compute(self, confidences: np.ndarray, ground_truth: np.ndarray, **kwargs):
@@ -28,24 +29,28 @@ class NetcalCalibrationError(BaseCalibrationError):
         """
         self.netcal_metric = netcal_metric
 
-    def _compute(self, confidences: np.ndarray, ground_truth: np.ndarray, **kwargs) \
-            -> float:
+    def _compute(
+        self, confidences: np.ndarray, ground_truth: np.ndarray, **kwargs
+    ) -> float:
         return self.netcal_metric.measure(confidences, ground_truth, **kwargs)
 
 
 class ACE(NetcalCalibrationError):
     """Average Calibration Error. Wraps around netcal's implementation - for further reading refer to netcal's docs."""
+
     def __init__(self, bins: int = 10):
         super(ACE, self).__init__(netcal.metrics.ACE(bins))
 
 
 class ECE(NetcalCalibrationError):
     """Expected Calibration Error. Wraps around netcal's implementation - for further reading refer to netcal's docs."""
+
     def __init__(self, bins: int = 10):
         super().__init__(netcal.metrics.ECE(bins))
 
 
 class MCE(NetcalCalibrationError):
     """Maximum Calibration Error. Wraps around netcal's implementation - for further reading refer to netcal's docs."""
+
     def __init__(self, bins: int = 10):
         super().__init__(netcal.metrics.MCE(bins))

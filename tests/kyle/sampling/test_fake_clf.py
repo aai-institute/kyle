@@ -8,7 +8,7 @@ def test_SufficientlyConfidentFC():
     ground_truth_array, class_proba_array = faker.get_sample_arrays(5)
     assert ground_truth in range(n_classes)
     assert confidences.shape == (n_classes,)
-    assert ground_truth_array.shape == (n_samples, )
+    assert ground_truth_array.shape == (n_samples,)
     assert class_proba_array.shape == (n_samples, n_classes)
 
 

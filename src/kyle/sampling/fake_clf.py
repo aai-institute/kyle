@@ -3,7 +3,11 @@ from typing import Sequence, List, Tuple, Union
 
 import numpy as np
 
-from kyle.transformations import IdentitySimplexAutomorphism, SimplexAutomorphism, ShiftingSimplexAutomorphism
+from kyle.transformations import (
+    IdentitySimplexAutomorphism,
+    SimplexAutomorphism,
+    ShiftingSimplexAutomorphism,
+)
 from kyle.util import in_simplex
 
 
@@ -43,12 +47,17 @@ class SufficientlyConfidentFC(FakeClassifier):
     """
 
     def __init__(self, num_classes: int):
-        assert num_classes > 1, f"{self.__class__.__name__} requires at least two classes"
+        assert (
+            num_classes > 1
+        ), f"{self.__class__.__name__} requires at least two classes"
         self.num_classes = num_classes
-        self.predicted_class_weights: np.ndarray = np.ones(self.num_classes) / self.num_classes
+        self.predicted_class_weights: np.ndarray = (
+            np.ones(self.num_classes) / self.num_classes
+        )
         self.alpha = np.ones((self.num_classes, self.num_classes))
-        self.simplex_automorphisms: List[SimplexAutomorphism] = \
-            [IdentitySimplexAutomorphism(self.num_classes)] * self.num_classes
+        self.simplex_automorphisms: List[SimplexAutomorphism] = [
+            IdentitySimplexAutomorphism(self.num_classes)
+        ] * self.num_classes
         # pyodide uses an older version of numpy which does not have the default_rng
         # self._rng = np.random.default_rng()
         self._rng = np.random
@@ -66,11 +75,15 @@ class SufficientlyConfidentFC(FakeClassifier):
         :param distribution_alpha: array of shape (n_classes,) corresponding to the new distribution weights
         :return:
         """
-        if not distribution_alpha.shape == (self.num_classes, ) or any(distribution_alpha < 0):
+        if not distribution_alpha.shape == (self.num_classes,) or any(
+            distribution_alpha < 0
+        ):
             raise ValueError("Invalid alpha parameters for dirichlet distribution")
         self.alpha[component] = distribution_alpha
 
-    def set_simplex_automorphism(self, component: int, aut: Union[SimplexAutomorphism, None]):
+    def set_simplex_automorphism(
+        self, component: int, aut: Union[SimplexAutomorphism, None]
+    ):
         if aut is None:
             aut = IdentitySimplexAutomorphism(self.num_classes)
         if aut.num_classes != self.num_classes:
@@ -85,29 +98,46 @@ class SufficientlyConfidentFC(FakeClassifier):
     #   However, this would complicate the code, as the selections of the appropriate distribution_alpha and simplex automorphism
     #   are not vectorized. Since performance is not critical here, maybe vectorization can be postponed
     def get_sample(self):
-        predicted_class = self._rng.choice(self.num_classes, 1, p=self.predicted_class_weights)[0]
+        predicted_class = self._rng.choice(
+            self.num_classes, 1, p=self.predicted_class_weights
+        )[0]
         alpha = self.alpha[predicted_class]
         k = self._rng.dirichlet(alpha)
-        confidence_vector = ShiftingSimplexAutomorphism(self._unit_vector(predicted_class)).transform(k)
-        gt_label_weights = self.simplex_automorphisms[predicted_class].transform(confidence_vector)
+        confidence_vector = ShiftingSimplexAutomorphism(
+            self._unit_vector(predicted_class)
+        ).transform(k)
+        gt_label_weights = self.simplex_automorphisms[predicted_class].transform(
+            confidence_vector
+        )
         gt_label = self._rng.choice(self.num_classes, 1, p=gt_label_weights)[0]
         return gt_label, confidence_vector
 
 
 class DirichletFC(FakeClassifier):
-    def __init__(self, num_classes: int, alpha: np.ndarray = None, simplex_automorphism: SimplexAutomorphism = None):
-        assert num_classes > 1, f"{self.__class__.__name__} requires at least two classes"
+    def __init__(
+        self,
+        num_classes: int,
+        alpha: np.ndarray = None,
+        simplex_automorphism: SimplexAutomorphism = None,
+    ):
+        assert (
+            num_classes > 1
+        ), f"{self.__class__.__name__} requires at least two classes"
         self.num_classes = num_classes
-        self.alpha = np.ones(self.num_classes) if alpha is None else self.set_alpha(alpha)
-        self.simplex_automorphism: SimplexAutomorphism = \
-            IdentitySimplexAutomorphism(self.num_classes) if simplex_automorphism is None \
+        self.alpha = (
+            np.ones(self.num_classes) if alpha is None else self.set_alpha(alpha)
+        )
+        self.simplex_automorphism: SimplexAutomorphism = (
+            IdentitySimplexAutomorphism(self.num_classes)
+            if simplex_automorphism is None
             else self.set_simplex_automorphism(simplex_automorphism)
+        )
         # pyodide uses an older version of numpy which does not have the default_rng
         # self._rng = np.random.default_rng()
         self._rng = np.random
 
     def set_alpha(self, alpha: np.ndarray):
-        if not alpha.shape == (self.num_classes, ):
+        if not alpha.shape == (self.num_classes,):
             raise ValueError(f"Wrong shape of alpha: {alpha.shape}")
         self.alpha = alpha
 
@@ -134,23 +164,35 @@ class SufficientlyConfidentFCBuilder:
 
     :param num_classes: Number of ground truth classes, must be larger than 1
     """
+
     def __init__(self, num_classes: int):
         self._fc = SufficientlyConfidentFC(num_classes)
-        assert num_classes > 1, f"{self.__class__.__name__} requires at least two classes"
+        assert (
+            num_classes > 1
+        ), f"{self.__class__.__name__} requires at least two classes"
         self.num_classes = num_classes
-        self.predicted_class_weights: np.ndarray = np.ones(self.num_classes) / self.num_classes
+        self.predicted_class_weights: np.ndarray = (
+            np.ones(self.num_classes) / self.num_classes
+        )
         self.alpha = np.ones((self.num_classes, self.num_classes))
-        self.simplex_automorphisms: List[SimplexAutomorphism] = \
-            [IdentitySimplexAutomorphism(self.num_classes)] * self.num_classes
+        self.simplex_automorphisms: List[SimplexAutomorphism] = [
+            IdentitySimplexAutomorphism(self.num_classes)
+        ] * self.num_classes
 
     def with_predicted_class_weights(self, weights: np.ndarray):
         if not in_simplex(weights, self.num_classes):
-            raise ValueError(f"Input has to be from a {self.num_classes - 1} dimensional simplex")
+            raise ValueError(
+                f"Input has to be from a {self.num_classes - 1} dimensional simplex"
+            )
         self.predicted_class_weights = weights
         return self
 
-    def with_simplex_automorphisms(self, simplex_automorphisms: Sequence[Union[SimplexAutomorphism, None]]):
-        assert len(simplex_automorphisms) == self.num_classes, f"Expected {self.num_classes} simplex automorphisms"
+    def with_simplex_automorphisms(
+        self, simplex_automorphisms: Sequence[Union[SimplexAutomorphism, None]]
+    ):
+        assert (
+            len(simplex_automorphisms) == self.num_classes
+        ), f"Expected {self.num_classes} simplex automorphisms"
         for i, aut in enumerate(simplex_automorphisms):
             self._fc.set_simplex_automorphism(i, aut)
         return self
@@ -163,7 +205,10 @@ class SufficientlyConfidentFCBuilder:
         :param alpha: array of shape (n_classes, n_classes) with semi-positive entries
         :return: patients
         """
-        assert alpha.shape == (self.num_classes, self.num_classes), f"Wrong input shape: {alpha.shape}"
+        assert alpha.shape == (
+            self.num_classes,
+            self.num_classes,
+        ), f"Wrong input shape: {alpha.shape}"
         self._fc.alpha = alpha
         return self
 

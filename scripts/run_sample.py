@@ -1,4 +1,5 @@
 from utils import prepare_imports
+
 prepare_imports()
 
 from kyle.sample_module import SampleClass

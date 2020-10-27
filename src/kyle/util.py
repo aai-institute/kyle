@@ -7,7 +7,9 @@ T = TypeVar("T")
 S = TypeVar("S")
 
 
-def iter_param_combinations(hyper_param_values: Dict[S, Sequence[T]]) -> Iterable[Dict[S, T]]:
+def iter_param_combinations(
+    hyper_param_values: Dict[S, Sequence[T]]
+) -> Iterable[Dict[S, T]]:
     """
     Create all possible combinations of values from a dictionary of possible parameter values
 
@@ -76,6 +78,9 @@ def in_simplex(confidences: np.ndarray, num_classes=None) -> bool:
     if num_classes is None:
         num_classes = confidences.shape[1]
 
-    return confidences.shape[1] == num_classes and \
-        np.allclose(np.sum(confidences, axis=1), 1.0, rtol=0.01) \
-        and (confidences >= 0).all() and (confidences <= 1).all()
+    return (
+        confidences.shape[1] == num_classes
+        and np.allclose(np.sum(confidences, axis=1), 1.0, rtol=0.01)
+        and (confidences >= 0).all()
+        and (confidences <= 1).all()
+    )
