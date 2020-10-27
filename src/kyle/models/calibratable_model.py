@@ -17,9 +17,12 @@ class CalibratableModel(BaseEstimator):
         self.model = model
         self.calibration_method = calibration_method
 
-    def fit(self, X: np.ndarray, y: np.ndarray):
+    def calibrate(self, X: np.ndarray, y: np.ndarray):
         uncalibrated_confidences = self.model.predict_proba(X)
         self.calibration_method.fit(uncalibrated_confidences, y)
+
+    def fit(self, X: np.ndarray, y: np.ndarray):
+        self.model.fit(X, y)
 
     def predict(self, X: np.ndarray) -> np.ndarray:
         calibrated_proba = self.predict_proba(X)

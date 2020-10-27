@@ -25,12 +25,8 @@ def dataset():
 
 
 @pytest.fixture(scope="module")
-def uncalibrated_model(dataset):
-    X_train, _, y_train, _ = dataset
-    model = SVC(max_iter=10000, probability=True)
-    model.fit(X_train, y_train)
-
-    return model
+def uncalibrated_model():
+    return SVC(max_iter=10000, probability=True)
 
 
 @pytest.fixture(scope="module")
@@ -40,19 +36,19 @@ def calibratable_model(uncalibrated_model):
 
 @pytest.fixture(scope="module")
 def calibrator(dataset, calibratable_model):
-    _, X_test, _, y_test = dataset
-    calibrator = ModelCalibrator(calibratable_model, X_test, y_test)
+    X_train, X_val, y_train, y_val = dataset
+    calibrator = ModelCalibrator(X_train, y_train)
 
     return calibrator
 
 
-def test_calibrator_CalibrateOnValSetAfterSettingValSet(dataset, calibrator):
+def test_calibrator_CalibrateOnValSetAfterSettingValSet(dataset, calibratable_model, calibrator):
     _, X_val, _, y_val = dataset
     calibrator.set_validation_data(X_val, y_val)
-    assert calibrator.calibrate(fit=True) is None
+    assert isinstance(calibrator.calibrate(calibratable_model, fit=True), CalibratableModel)
 
 
 def test_calibrator_errorCalibrateOnValSetWithoutSettingValSet(dataset, calibrator):
     calibrator.set_validation_data(None, None)
     with pytest.raises(AttributeError):
-        assert calibrator.calibrate(fit=True)
+        assert calibrator.calibrate(calibratable_model, fit=True)
