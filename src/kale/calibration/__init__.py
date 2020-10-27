@@ -1,1 +1,1 @@
-from .temperature_scaling import TemperatureScaling
+from .model_calibrator import ModelCalibrator
