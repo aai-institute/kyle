@@ -1,7 +1,7 @@
 sampling
 ========
 
-.. automodule:: kale.sampling
+.. automodule:: kyle.sampling
    :members:
    :undoc-members:
 

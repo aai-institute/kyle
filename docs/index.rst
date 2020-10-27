@@ -1,4 +1,4 @@
-kale library and game
+kyle library and game
 =====================
 
 .. toctree::
@@ -11,7 +11,7 @@ kale library and game
 .. toctree::
    :caption: Modules
 
-   kale/index
+   kyle/index
 
 
 

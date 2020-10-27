@@ -1,11 +1,11 @@
-metrics
-=======
+Library Modules
+===============
 
-.. automodule:: kale.metrics
+.. automodule:: kyle
    :members:
    :undoc-members:
 
 .. toctree::
    :glob:
 
-   metrics/*
+   *

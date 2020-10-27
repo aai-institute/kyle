@@ -1,6 +1,6 @@
 evaluation
 ==========
 
-.. automodule:: kale.evaluation
+.. automodule:: kyle.evaluation
    :members:
    :undoc-members:

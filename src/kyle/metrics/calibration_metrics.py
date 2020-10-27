@@ -21,7 +21,7 @@ class BaseCalibrationError(ABC):
         return self.__class__.__name__
 
 
-class NetcalCalibrationError(ABC):
+class NetcalCalibrationError(BaseCalibrationError):
     def __init__(self, netcal_metric):
         """
         Instance of a netcal metric class, e.g. netcal.metrics.ECE

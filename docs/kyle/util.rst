@@ -1,6 +1,6 @@
 util
 ====
 
-.. automodule:: kale.util
+.. automodule:: kyle.util
    :members:
    :undoc-members:
