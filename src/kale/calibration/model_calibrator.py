@@ -12,6 +12,9 @@ class ModelCalibrator:
         self.X_fit = X_fit
         self.y_fit = y_fit
 
+    def set_validation_data(self, X: np.ndarray, y: np.ndarray):
+        self.X_fit, self.y_fit = X, y
+
     def calibrate(self, fit: bool = False):
         if fit:
             if self.X_fit is None or self.y_fit is None:

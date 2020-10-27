@@ -22,8 +22,8 @@ class TemperatureScaling(BaseCalibrationMethod):
     def __init__(self):
         self.netcal_temp_scaling = netcal_TemperatureScaling()
 
-    def fit(self, X, y):
+    def fit(self, X: np.ndarray, y: np.ndarray):
         self.netcal_temp_scaling.fit(X, y)
 
-    def get_calibrated_confidences(self, confidences) -> np.ndarray:
+    def get_calibrated_confidences(self, confidences: np.ndarray) -> np.ndarray:
         return self.netcal_temp_scaling.transform(confidences)
