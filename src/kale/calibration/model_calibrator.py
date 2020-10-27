@@ -18,7 +18,7 @@ class ModelCalibrator:
     def calibrate(self, fit: bool = False):
         if fit:
             if self.X_fit is None or self.y_fit is None:
-                raise TypeError("No validation set provided.")
+                raise AttributeError("No validation set provided.")
             X, y = self.X_fit, self.y_fit
         else:
             X, y = self.X_calibrate, self.y_calibrate

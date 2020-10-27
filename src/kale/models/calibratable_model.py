@@ -15,16 +15,13 @@ class CalibratableModel(BaseEstimator):
         self.calibration_method.fit(uncalibrated_confidences, y)
 
     def predict(self, X: np.ndarray) -> np.ndarray:
-        uncalibrated_confidences = self.model.predict_proba(X)
-        calibrated_confidences = self.calibration_method.get_calibrated_confidences(uncalibrated_confidences)
+        calibrated_proba = self.predict_proba(X)
 
-        return calibrated_confidences
+        return np.argmax(calibrated_proba, axis=2)
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
-        calibrated_confidences = self.predict(X)
-
-        if calibrated_confidences.ndim < 2:
-            calibrated_confidences = np.vstack((np.subtract(1, calibrated_confidences), calibrated_confidences)).T
+        uncalibrated_confidences = self.model.predict_proba(X)
+        calibrated_confidences = self.calibration_method.get_calibrated_confidences(uncalibrated_confidences)
 
         return calibrated_confidences
 

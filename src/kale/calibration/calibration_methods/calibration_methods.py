@@ -7,7 +7,7 @@ from netcal.scaling import TemperatureScaling as netcal_TemperatureScaling
 
 class BaseCalibrationMethod(ABC):
     @abstractmethod
-    def fit(self, X, y):
+    def fit(self, confidences, ground_truth):
         pass
 
     @abstractmethod
@@ -22,8 +22,13 @@ class TemperatureScaling(BaseCalibrationMethod):
     def __init__(self):
         self.netcal_temp_scaling = netcal_TemperatureScaling()
 
-    def fit(self, X: np.ndarray, y: np.ndarray):
-        self.netcal_temp_scaling.fit(X, y)
+    def fit(self, confidences: np.ndarray, ground_truth: np.ndarray):
+        self.netcal_temp_scaling.fit(confidences, ground_truth)
 
     def get_calibrated_confidences(self, confidences: np.ndarray) -> np.ndarray:
-        return self.netcal_temp_scaling.transform(confidences)
+        calibrated_confs = self.netcal_temp_scaling.transform(confidences)
+
+        if calibrated_confs.ndim < 2:
+            calibrated_confs = np.vstack((np.subtract(1, calibrated_confs), calibrated_confs)).T
+
+        return calibrated_confs
