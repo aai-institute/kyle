@@ -1,9 +1,10 @@
 import pytest
-from sklearn.svm import SVC
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
 
 from kyle.calibration import ModelCalibrator
+from kyle.metrics import ECE
 from kyle.models import CalibratableModel
 
 
@@ -35,24 +36,17 @@ def calibratable_model(uncalibrated_model):
 
 
 @pytest.fixture(scope="module")
-def calibrator(dataset, calibratable_model):
+def calibrator(dataset):
     X_train, X_val, y_train, y_val = dataset
-    calibrator = ModelCalibrator(X_train, y_train)
-
+    calibrator = ModelCalibrator(X_val, y_val, X_fit=X_train, y_fit=y_train)
     return calibrator
 
 
-def test_calibrator_CalibrateOnValSetAfterSettingValSet(
-    dataset, calibratable_model, calibrator
-):
-    _, X_val, _, y_val = dataset
-    calibrator.set_validation_data(X_val, y_val)
-    assert isinstance(
-        calibrator.calibrate(calibratable_model, fit=True), CalibratableModel
-    )
-
-
-def test_calibrator_errorCalibrateOnValSetWithoutSettingValSet(dataset, calibrator):
-    calibrator.set_validation_data(None, None)
-    with pytest.raises(AttributeError):
-        assert calibrator.calibrate(calibratable_model, fit=True)
+def test_calibrator_integrationTest(calibrator, calibratable_model):
+    calibrator.calibrate(calibratable_model, fit=True)
+    metric = ECE()
+    predicted_probas = calibratable_model.model.predict(calibrator.X_calibrate)
+    calibrated_predicted_probas = calibratable_model.predict(calibrator.X_calibrate)
+    assert metric.compute(
+        calibrated_predicted_probas, calibrator.y_calibrate
+    ) < metric.compute(predicted_probas, calibrator.y_calibrate)

@@ -16,21 +16,13 @@ class ModelCalibrator:
         self.X_fit = X_fit
         self.y_fit = y_fit
 
-    def set_validation_data(self, X: np.ndarray, y: np.ndarray):
-        self.X_fit, self.y_fit = X, y
-
     def calibrate(self, calibratable_model: CalibratableModel, fit: bool = False):
         if fit:
             if self.X_fit is None or self.y_fit is None:
-                raise AttributeError("No validation set provided.")
-            calibratable_model.fit(self.X_calibrate, self.y_calibrate)
-            X_val, y_val = self.X_fit, self.y_fit
-        else:
-            X_val, y_val = self.X_calibrate, self.y_calibrate
+                raise AttributeError("No dataset for fitting provided")
+            calibratable_model.fit(self.X_fit, self.y_fit)
 
-        calibratable_model.calibrate(X_val, y_val)
-
-        return calibratable_model
+        calibratable_model.calibrate(self.X_calibrate, self.y_calibrate)
 
     def __str__(self):
         return self.__class__.__name__
