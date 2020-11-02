@@ -1,4 +1,4 @@
-from sklearn.base import BaseEstimator
+from typing import Protocol
 
 import numpy as np
 
@@ -8,10 +8,21 @@ from kyle.calibration.calibration_methods import (
 )
 
 
-class CalibratableModel(BaseEstimator):
+class ClassifierProtocol(Protocol):
+    def fit(self, X: np.ndarray, y: np.ndarray):
+        ...
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        ...
+
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        ...
+
+
+class CalibratableModel(ClassifierProtocol):
     def __init__(
         self,
-        model: BaseEstimator,
+        model: ClassifierProtocol,
         calibration_method: BaseCalibrationMethod = TemperatureScaling(),
     ):
         self.model = model
@@ -31,11 +42,9 @@ class CalibratableModel(BaseEstimator):
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
         uncalibrated_confidences = self.model.predict_proba(X)
-        calibrated_confidences = self.calibration_method.get_calibrated_confidences(
+        return self.calibration_method.get_calibrated_confidences(
             uncalibrated_confidences
         )
-
-        return calibrated_confidences
 
     def __str__(self):
         return f"{self.__class__.__name__}, method: {self.calibration_method}"
