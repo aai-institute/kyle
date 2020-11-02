@@ -1,7 +1,7 @@
 import pytest
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
-from sklearn.svm import SVC
+from sklearn.neural_network import MLPClassifier
 
 from kyle.calibration import ModelCalibrator
 from kyle.metrics import ECE
@@ -27,7 +27,7 @@ def dataset():
 
 @pytest.fixture(scope="module")
 def uncalibrated_model():
-    return SVC(max_iter=10000, probability=True)
+    return MLPClassifier(hidden_layer_sizes=(50, 50, 50))
 
 
 @pytest.fixture(scope="module")
@@ -45,8 +45,10 @@ def calibrator(dataset):
 def test_calibrator_integrationTest(calibrator, calibratable_model):
     calibrator.calibrate(calibratable_model, fit=True)
     metric = ECE()
-    predicted_probas = calibratable_model.model.predict(calibrator.X_calibrate)
-    calibrated_predicted_probas = calibratable_model.predict(calibrator.X_calibrate)
+    predicted_probas = calibratable_model.model.predict_proba(calibrator.X_calibrate)
+    calibrated_predicted_probas = calibratable_model.predict_proba(
+        calibrator.X_calibrate
+    )
     assert metric.compute(
         calibrated_predicted_probas, calibrator.y_calibrate
     ) < metric.compute(predicted_probas, calibrator.y_calibrate)
