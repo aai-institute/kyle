@@ -39,10 +39,11 @@ class TemperatureScaling(BaseCalibrationMethod):
     def get_calibrated_confidences(self, confidences: np.ndarray) -> np.ndarray:
         calibrated_confs = self.netcal_temp_scaling.transform(confidences)
 
-        # For binary classifiers, get score of second class by subtracting first class scores from 1
+        # unfortunately, for 2-dim input netcal gives only the probabilities for the second class,
+        # changing the dimension of the output array
         if calibrated_confs.ndim < 2:
-            calibrated_confs = np.vstack(
-                (np.subtract(1, calibrated_confs), calibrated_confs)
-            ).T
+            second_class_confs = calibrated_confs
+            first_class_confs = 1 - second_class_confs
+            calibrated_confs = np.vstack((first_class_confs, second_class_confs)).T
 
         return calibrated_confs
