@@ -1,4 +1,4 @@
-# kale
+# kyle
 
 This repository contains a library template with utilities for building, testing, documentation 
 and configuration management.
@@ -14,8 +14,8 @@ detect mistakes early on.
 The library dependencies are separated from the additional dependencies for development.
 We strongly suggest to use some form of virtual environment for working with the library. E.g. with conda:
 ```shell script
-conda create -n kale python=3.8
-conda activate kale
+conda create -n kyle python=3.8
+conda activate kyle
 pip install -r requirements.txt -r requirements-dev.txt
 ```
 
