@@ -21,19 +21,25 @@ class SimplexAutomorphism(ABC):
 
     @abstractmethod
     def _transform(self, x: np.ndarray) -> np.ndarray:
+        """
+        :param x: array of shape (n_samples, n_classes)
+        :return: transformed array of shape (n_samples, n_classes)
+        """
         pass
 
-    def transform(self, x: np.ndarray):
-        if not in_simplex(x, self.num_classes):
+    def transform(self, x: np.ndarray, check_io=True) -> np.ndarray:
+        if len(x.shape) == 1:
+            x = x[None, :]
+        if check_io and not in_simplex(x, self.num_classes):
             raise ValueError(
                 f"Input has to be from a {self.num_classes - 1} dimensional simplex"
             )
-        x = self._transform(x.copy())
-        if not in_simplex(x, self.num_classes):
-            raise Exception(
+        x = self._transform(x)
+        if check_io and not in_simplex(x, self.num_classes):
+            raise ValueError(
                 f"Bad implementation: Output has to be from a {self.num_classes - 1} dimensional simplex"
             )
-        return x
+        return x.squeeze()
 
 
 class IdentitySimplexAutomorphism(SimplexAutomorphism):
@@ -62,24 +68,8 @@ class SingleComponentSimplexAutomorphism(SimplexAutomorphism):
         super().__init__(num_classes)
 
     def _transform(self, x: np.ndarray) -> np.ndarray:
+        x = x.copy()
         x[self.component] = self.mapping(x[self.component])
-        return x / x.sum()
-
-
-class ScalingSimplexAutomorphism(SimplexAutomorphism):
-    """
-    An automorphism that scales each axis/class with the corresponding parameter and normalizes the result.
-    If all scaling parameters are equal, this corresponds to the identity operation.
-
-    :param scaling_parameters: array with positive numbers, one per class
-    """
-
-    def __init__(self, scaling_parameters: np.ndarray):
-        self.scaling_parameters = scaling_parameters
-        super().__init__(len(scaling_parameters))
-
-    def _transform(self, x: np.ndarray) -> np.ndarray:
-        x = np.multiply(x, self.scaling_parameters)
         return x / x.sum()
 
 
@@ -97,24 +87,9 @@ class MaxComponentSimplexAutomorphism(SimplexAutomorphism):
         super().__init__(num_classes)
 
     def _transform(self, x: np.ndarray) -> np.ndarray:
+        x = x.copy()
         i = x.argmax()
         x[i] = self.mapping(x[i])
-        return x / x.sum()
-
-
-class ShiftingSimplexAutomorphism(SimplexAutomorphism):
-    """
-    An automorphism resulting from adding a fixed vector with positive entries to the input and normalizing the result
-
-    :param shifting_vector: numpy array with positive entries of shape (num_classes, )
-    """
-
-    def __init__(self, shifting_vector: np.ndarray):
-        self.shifting_vector = shifting_vector
-        super().__init__(len(shifting_vector))
-
-    def _transform(self, x: np.ndarray) -> np.ndarray:
-        x = x + self.shifting_vector
         return x / x.sum()
 
 
@@ -139,4 +114,18 @@ class PowerLawSimplexAutomorphism(SimplexAutomorphism):
 
     def _transform(self, x: np.ndarray) -> np.ndarray:
         x = np.float_power(x, self.exponents)
-        return x / x.sum()
+        return x / x.sum(axis=1)[:, None]
+
+
+class RestrictedPowerSimplexAutomorphism(SimplexAutomorphism):
+    def __init__(self, exponents: np.ndarray):
+        if not np.all(exponents >= 1):
+            raise ValueError("Only exponents >= 1 are permitted")
+        self.exponents = exponents
+        super().__init__(len(exponents) + 1)
+
+    def _transform(self, x: np.ndarray) -> np.ndarray:
+        x = x.copy()
+        x[:-1] = np.float_power(x[:-1], self.exponents)
+        x[-1] = 1 - x[:-1].sum(axis=1)[:, None]
+        return x
