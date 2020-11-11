@@ -54,11 +54,14 @@ class SingleComponentSimplexAutomorphism(SimplexAutomorphism):
 
     :param num_classes:
     :param component: integer in range [0, num_classes - 1], corresponding to the component on which to apply the mapping
-    :param mapping: map from the unit interval [0,1] to itself
+    :param mapping: map from the unit interval [0,1] to itself, should be applicable to arrays
     """
 
     def __init__(
-        self, num_classes: int, component: int, mapping: Callable[[float], float]
+        self,
+        num_classes: int,
+        component: int,
+        mapping: Callable[[np.ndarray], np.ndarray],
     ):
         assert (
             0 <= component < num_classes
@@ -69,8 +72,8 @@ class SingleComponentSimplexAutomorphism(SimplexAutomorphism):
 
     def _transform(self, x: np.ndarray) -> np.ndarray:
         x = x.copy()
-        x[self.component] = self.mapping(x[self.component])
-        return x / x.sum()
+        x[:, self.component] = self.mapping(x[:, self.component])
+        return x / x.sum(axis=1)[:, None]
 
 
 class MaxComponentSimplexAutomorphism(SimplexAutomorphism):
@@ -82,15 +85,16 @@ class MaxComponentSimplexAutomorphism(SimplexAutomorphism):
     :param mapping: map from the unit interval [0,1] to itself
     """
 
-    def __init__(self, num_classes, mapping: Callable[[float], float]):
+    def __init__(self, num_classes, mapping: Callable[[np.ndarray], np.ndarray]):
         self.mapping = mapping
         super().__init__(num_classes)
 
     def _transform(self, x: np.ndarray) -> np.ndarray:
         x = x.copy()
-        i = x.argmax()
-        x[i] = self.mapping(x[i])
-        return x / x.sum()
+        argmax = x.argmax(axis=1)[:, None]
+        new_values = self.mapping(x.max(axis=1))[:, None]
+        np.put_along_axis(x, argmax, new_values, axis=1)
+        return x / x.sum(axis=1)[:, None]
 
 
 class PowerLawSimplexAutomorphism(SimplexAutomorphism):
@@ -121,11 +125,11 @@ class RestrictedPowerSimplexAutomorphism(SimplexAutomorphism):
     def __init__(self, exponents: np.ndarray):
         if not np.all(exponents >= 1):
             raise ValueError("Only exponents >= 1 are permitted")
-        self.exponents = exponents
+        self.exponents = exponents[None, :]
         super().__init__(len(exponents) + 1)
 
     def _transform(self, x: np.ndarray) -> np.ndarray:
         x = x.copy()
-        x[:-1] = np.float_power(x[:-1], self.exponents)
-        x[-1] = 1 - x[:-1].sum(axis=1)[:, None]
+        x[:, :-1] = np.float_power(x[:, :-1], self.exponents)
+        x[:, -1] = 1 - x[:, :-1].sum(axis=1)
         return x
