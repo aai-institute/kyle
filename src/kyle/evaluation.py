@@ -172,9 +172,7 @@ class EvalStats:
         accuracies_per_bin = np.zeros(self.bins)
         for i, probability_bin in enumerate(self.discretized_probab_values):
             probability_bin_mask = class_confidences == probability_bin
-            cur_gt_labels = self.y_true[
-                probability_bin_mask
-            ]  # only consider gt in current probability bin
+            cur_gt_labels = self.y_true[probability_bin_mask]
 
             cur_members = np.sum(probability_bin_mask)
             cur_accuracy = safe_accuracy_score(
@@ -196,9 +194,7 @@ class EvalStats:
             probability_bin_mask = (
                 self.discretized_top_class_confidences() == probability
             )
-            cur_gt_labels = self.y_true[
-                probability_bin_mask
-            ]  # only consider gt in current bin
+            cur_gt_labels = self.y_true[probability_bin_mask]
             cur_pred_labels = self.y_pred[probability_bin_mask]
 
             cur_members = np.sum(probability_bin_mask)
