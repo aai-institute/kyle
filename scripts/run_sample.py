@@ -1,9 +1,10 @@
+from kyle.sample_module import SampleClass
 from utils import prepare_imports
+
+from config import get_config
 
 prepare_imports()
 
-from kyle.sample_module import SampleClass
-from config import get_config
 
 if __name__ == "__main__":
 

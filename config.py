@@ -1,9 +1,7 @@
 import json
 import logging.handlers
 import os
-
-from typing import List, Union, Dict
-
+from typing import Dict, List, Union
 
 log = logging.getLogger(__name__)
 

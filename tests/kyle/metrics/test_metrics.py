@@ -1,6 +1,6 @@
 import pytest
 
-from kyle.metrics import ECE, MCE, ACE
+from kyle.metrics import ACE, ECE, MCE
 
 
 @pytest.fixture(scope="module")

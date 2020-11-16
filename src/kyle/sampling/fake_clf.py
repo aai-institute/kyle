@@ -1,12 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import Union, Sequence
+from typing import Sequence, Union
 
 import numpy as np
 
-from kyle.transformations import (
-    IdentitySimplexAut,
-    SimplexAut,
-)
+from kyle.transformations import IdentitySimplexAut, SimplexAut
 from kyle.util import sample_index
 
 

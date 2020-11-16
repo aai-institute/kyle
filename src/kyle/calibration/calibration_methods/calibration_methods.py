@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 
 import numpy as np
-
 from netcal.scaling import TemperatureScaling as netcal_TemperatureScaling
 
 
