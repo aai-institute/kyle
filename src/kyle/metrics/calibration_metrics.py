@@ -6,6 +6,9 @@ import numpy as np
 from kyle.util import in_simplex
 
 
+# TODO: get rid of this
+
+
 class BaseCalibrationError(ABC):
     @abstractmethod
     def _compute(
