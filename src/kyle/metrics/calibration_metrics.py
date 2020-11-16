@@ -6,9 +6,6 @@ import numpy as np
 from kyle.util import in_simplex
 
 
-# TODO: get rid of this
-
-
 class BaseCalibrationError(ABC):
     @abstractmethod
     def _compute(
@@ -57,3 +54,6 @@ class MCE(NetcalCalibrationError):
 
     def __init__(self, bins: int = 10):
         super().__init__(netcal.metrics.MCE(bins))
+
+
+# TODO: get rid of this
