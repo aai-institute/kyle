@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import Union
+from typing import Union, Sequence
 
 import numpy as np
 
 from kyle.transformations import (
-    IdentitySimplexAutomorphism,
-    SimplexAutomorphism,
+    IdentitySimplexAut,
+    SimplexAut,
 )
 from kyle.util import sample_index
 
@@ -14,7 +14,7 @@ class FakeClassifier(ABC):
     def __init__(
         self,
         num_classes: int,
-        simplex_automorphism: SimplexAutomorphism = None,
+        simplex_automorphism: SimplexAut = None,
         check_io=True,
     ):
         if num_classes < 1:
@@ -22,19 +22,19 @@ class FakeClassifier(ABC):
         self.num_classes = num_classes
         self._rng = np.random.default_rng()
 
-        self._simplex_automorphism: SimplexAutomorphism = None
+        self._simplex_automorphism: SimplexAut = None
         self.set_simplex_automorphism(simplex_automorphism)
         self.check_io = check_io
 
     # TODO or not TODO: one could get rid of separate SimplexAut. class in favor of passing a function
     #   pro: the function is less verbose to write, easier for user; contra: naming and state become more convoluted
-    def set_simplex_automorphism(self, aut: Union[SimplexAutomorphism, None]) -> None:
+    def set_simplex_automorphism(self, aut: Union[SimplexAut, None]) -> None:
         """
         :param aut: if None, the identity automorphism will be set
         """
         if aut is None:
-            aut = IdentitySimplexAutomorphism(self.num_classes)
-        if aut.num_classes != self.num_classes:
+            aut = IdentitySimplexAut(self.num_classes)
+        if aut.num_classes is not None and aut.num_classes != self.num_classes:
             raise ValueError(f"{aut} has wrong number of classes: {aut.num_classes}")
         self._simplex_automorphism = aut
 
@@ -68,8 +68,8 @@ class DirichletFC(FakeClassifier):
     def __init__(
         self,
         num_classes: int,
-        alpha: np.ndarray = None,
-        simplex_automorphism: SimplexAutomorphism = None,
+        alpha: Sequence[float] = None,
+        simplex_automorphism: SimplexAut = None,
     ):
         super().__init__(num_classes, simplex_automorphism=simplex_automorphism)
 
@@ -82,8 +82,10 @@ class DirichletFC(FakeClassifier):
         """
         if alpha is None:
             alpha = np.ones(self.num_classes)
-        if not alpha.shape == (self.num_classes,):
-            raise ValueError(f"Wrong shape of alpha: {alpha.shape}")
+        else:
+            alpha = np.array(alpha)
+            if not alpha.shape == (self.num_classes,):
+                raise ValueError(f"Wrong shape of alpha: {alpha.shape}")
         self._alpha = alpha
 
     @property

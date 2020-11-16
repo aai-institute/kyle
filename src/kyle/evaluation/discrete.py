@@ -218,7 +218,7 @@ class EvalStats:
         colors = ListedColormap(["y", "g", "r", "c", "m"])
 
         plt.figure()
-        plt.title(f"Reliability curves")
+        plt.title(f"Reliability curves ({self.bins} bins)")
         plt.xlabel("confidence")
         plt.ylabel("ground truth probability")
         plt.axis("equal")
@@ -238,10 +238,9 @@ class EvalStats:
                 raise ValueError(f"Unknown class label: {class_label}")
             plt.plot(x_values, y_values, marker=".", label=label, color=color)
             if display_weights:
-                weights = weights / (
-                    3 * weights.max()
-                )  # rescale the weights such that the maximum is at 1/3 for improved visibility
-                plt.bar(x_values, weights, alpha=0.3, width=1 / self.bins, color=color)
+                # rescale the weights such that the maximum is at 1/2 for improved visibility
+                weights = 1 / 2 * weights / weights.max()
+                plt.bar(x_values, weights, alpha=0.2, width=1 / self.bins, color=color)
 
         axes = plt.gca()
         axes.set_xlim([0, 1])
