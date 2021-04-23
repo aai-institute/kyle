@@ -247,3 +247,41 @@ class EvalStats:
         axes.set_ylim([0, 1])
         plt.legend(loc="best")
         plt.show()
+
+    def plot_confidence_distributions(self, class_labels: Sequence[Union[int, str]]):
+        """
+
+        :param class_labels:
+        :return:
+        """
+        colors = ListedColormap(["y", "g", "r", "c", "m"])
+
+        plt.figure()
+        plt.title(f"Marginal Confidence Distribution ({self.bins} bins)")
+        plt.xlabel("confidence")
+        plt.ylabel("Frequency")
+        x_values = self.discretized_probab_values
+
+        for i, class_label in enumerate(class_labels):
+            color = colors(i)
+            if isinstance(class_label, int):
+                label = f"class {class_label}"
+                _, weights = self.marginal_reliabilities(class_label)
+            elif class_label == self.TOP_CLASS_LABEL:
+                label = "prediction"
+                _, weights = self.top_class_reliabilities()
+            else:
+                raise ValueError(f"Unknown class label: {class_label}")
+            plt.bar(
+                x_values,
+                weights,
+                alpha=0.3,
+                width=1 / self.bins,
+                label=label,
+                color=color,
+            )
+
+        axes = plt.gca()
+        axes.set_xlim([0, 1])
+        plt.legend(loc="best")
+        plt.show()
