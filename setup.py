@@ -12,7 +12,7 @@ setup(
     package_dir={"": "src"},
     packages=find_packages(where="src"),
     include_package_data=True,
-    version="0.1.0-dev0",
+    version="0.1.0-dev1",
     description="appliedAI classifier calibration library",
     install_requires=open("requirements.txt").readlines(),
     setup_requires=["wheel"],
