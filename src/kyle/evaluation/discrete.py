@@ -248,15 +248,19 @@ class EvalStats:
         plt.legend(loc="best")
         plt.show()
 
-    def plot_confidence_distributions(self, class_labels: Sequence[Union[int, str]]):
+    def plot_confidence_distributions(
+        self, class_labels: Sequence[Union[int, str]], new_fig=True
+    ):
         """
 
+        :param new_fig:
         :param class_labels:
         :return:
         """
         colors = ListedColormap(["y", "g", "r", "c", "m"])
 
-        plt.figure()
+        if new_fig:
+            plt.figure()
         plt.title(f"Marginal Confidence Distribution ({self.bins} bins)")
         plt.xlabel("confidence")
         plt.ylabel("Frequency")
@@ -284,4 +288,5 @@ class EvalStats:
         axes = plt.gca()
         axes.set_xlim([0, 1])
         plt.legend(loc="best")
-        plt.show()
+        if new_fig:
+            plt.show()
