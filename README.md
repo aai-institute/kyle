@@ -1,52 +1,18 @@
-# kyle
+# Kyle - a Calibration Toolkit
 
-This repository contains a library template with utilities for building, testing, documentation 
-and configuration management.
+This library contains utils for measuring and visualizing calibration of probabilistic classifiers as well as for 
+recalibrating them. Currently only methods for recalibration through post-processing are supported, although we plan
+to include calibration specific training algorithms as well in the future.
 
-## Workflow
-Automated builds, tests, generation of docu and publishing should be handled by cicd pipelines. 
-You might already have an initial version of the pipeline here. Below you will find further details on testing 
-and documentation. 
+Kyle is model agnostic, any probabilistic classifier can be wrapped with a thin wrapper called `CalibratableModel` which
+supports multiple calibration algorithms. For a quick intro overview of the API have a look at the calibration demo 
+notebook (the notebook with executed cells can be found in the docu).
 
-Before pushing your changes to the remote it is often useful to execute `tox` locally in order to
-detect mistakes early on.
-
-The library dependencies are separated from the additional dependencies for development.
-We strongly suggest to use some form of virtual environment for working with the library. E.g. with conda:
-```shell script
-conda create -n kyle python=3.8
-conda activate kyle
-pip install -r requirements.txt -r requirements-dev.txt
-```
-
-### Testing and packaging
-The library is tested with tox which will build and install the package and run pytest and doctest. 
-You can run it locally by installing tox into your virtual environment 
-(e.g. with `pip install tox`) and executing `tox`. 
-
-For creating a package locally run
-```shell script
-python setup.py sdist bdist_wheel
-```
-
-### Documentation
-Documentation is built with sphinx every time tox is executed. 
-There is a helper script for updating documentation files automatically. It is called by tox on built and can 
-also be invoked as
-```bash
-python scripts/update_docs.py
-```
-See the code documentation in the script for more details on that
-
-### Note
-You might wonder why the requirements.txt already contains numpy. The reason is that tox seems to have a problem with empty
-requirements files. Feel free to remove numpy once you have non-trivial requirements
-
-## Configuration Management
-The repository also includes configuration utilities that are often helpful when using data-related libraries. 
-They do not form part of the resulting package, you can (and probably should) adjust them to your needs.
-
-## CI/CD
-Depending on the provider you chose for CI/CD, this repo might already contain a rudimentary CI/CD pipeline. 
-The pipelines serve for building and testing the library and for publishing the resulting package and documentation.
-You will probably have to further adjust it to your needs.
+Apart from tools for analysing models, kyle also offers support for developing and testing custom calibration metrics
+and algorithms. In order not to have to rely on evaluation data sets and trained models for delivering labels and confidence 
+vectors, with kyle custom samplers based on [fake classifiers](our paper/review) can be constructed. These samplers can
+also be fit on some data set in case you want to mimic it. Using the fake classifiers, an arbitrary number of ground 
+truth labels and miscalibrated confidence vectors can be generated to help you analyse your algorithms (common use cases
+will be analysis of variance and bias of calibration metrics and benchmarking of recalibration algorithms). Several
+pre-configured fake classifiers mimicking common models, e.g. vision models trained on MNIST and CIFAR10, are implemented
+in kyle and can be used out of the box. 
