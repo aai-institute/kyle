@@ -1,7 +1,7 @@
 # Kyle - a Calibration Toolkit
 
 This library contains utils for measuring and visualizing calibration of probabilistic classifiers as well as for 
-recalibrating them. Currently only methods for recalibration through post-processing are supported, although we plan
+recalibrating them. Currently, only methods for recalibration through post-processing are supported, although we plan
 to include calibration specific training algorithms as well in the future.
 
 Kyle is model agnostic, any probabilistic classifier can be wrapped with a thin wrapper called `CalibratableModel` which
