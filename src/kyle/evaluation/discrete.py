@@ -261,7 +261,7 @@ class EvalStats:
 
         if new_fig:
             plt.figure()
-        plt.title(f"Marginal Confidence Distribution ({self.bins} bins)")
+        plt.title(f" Confidence Distribution ({self.bins} bins)")
         plt.xlabel("confidence")
         plt.ylabel("Frequency")
         x_values = self.discretized_probab_values

@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Sequence, Union
 
 import numpy as np
+import scipy.optimize
 import scipy.stats
 
 from kyle.transformations import IdentitySimplexAut, SimplexAut
@@ -98,6 +99,41 @@ class DirichletFC(FakeClassifier):
             alpha = self.alpha
         return scipy.stats.dirichlet.pdf(confidences.T, alpha)
 
+    def fit(self, confidences, initial_alpha=None, alpha_bounds=None, **kwargs):
+        """
+        Fits the dirichlet fake classifier to the provided confidence distribution using maximum likelihood estimation
+        and sets the fake classifier parameters to the best fit parameters
+
+        :param confidences: Numpy array of shape (num_samples, num_classes);
+                            confidence distribution to fit classifier to
+        :param initial_alpha: Float; Initial guess for fitting alpha parameters
+        :param alpha_bounds: Tuple, (lower_bound, upper_bound); Bounds for fitting alpha parameters. A lower/upper bound
+                             of None corresponds to unbounded parameter
+        :param kwargs: passed to ``scipy.optimize.minimize``
+        :return:
+        """
+        if initial_alpha is None:
+            initial_alpha = self.alpha
+
+        if alpha_bounds is None:
+            alpha_bounds = (0.0001, None)
+
+        # rescale confidences to avoid divergences on sides of simplex and renormalize
+        confidences = (
+            confidences * (confidences.shape[0] - 1) + 1 / self.num_classes
+        ) / confidences.shape[0]
+        confidences = confidences / np.sum(confidences, axis=1)[:, None]
+
+        alpha_bounds = [alpha_bounds] * self.num_classes
+
+        nll = lambda parm: -np.sum(np.log(self.pdf(confidences, parm)))
+        mle_fit = scipy.optimize.minimize(
+            nll, initial_alpha, bounds=alpha_bounds, **kwargs
+        )
+        self.set_alpha(mle_fit.x)
+
+        return mle_fit
+
 
 class MultiDirichletFC(FakeClassifier):
     """
@@ -110,7 +146,7 @@ class MultiDirichletFC(FakeClassifier):
     :param num_classes:
     :param alpha: numpy array of shape (num_classes,). k'th entry corresponds to alpha_k for the k'th dirichlet
     :param sigma: numpy array of shape (num_classes,). k'th entry corresponds to sigma for the k'th dirichlet
-    :param distribution_weights:
+    :param distribution_weights: numpy array of shape (num_classes,). Probabilities used for drawing from K Categorical
     :param simplex_automorphism:
     """
 
@@ -237,3 +273,123 @@ class MultiDirichletFC(FakeClassifier):
         return np.sum(distribution_weights[:, None] * distributions, axis=0) / np.sum(
             distribution_weights
         )
+
+    def fit(
+        self,
+        confidences,
+        initial_parameters=None,
+        parameter_bounds=None,
+        simplified_fitting=True,
+        **kwargs,
+    ):
+        """
+        Fits a Multi-Dirichlet fake classifier to the provided confidence distribution using maximum likeihood
+        estimation and sets the fake classifier parameters to the best fit parameters.
+        If simplified_fitting is set to False all parameters of the fake classifier are fit directly via MLE
+        If simplified_fitting is set to True each dirichlet is fit separately. Alpha and Sigma of the k'th dirichlet
+        are fit to the subset of the confidences that predict the k'th class, i.e. for which argmax(c) = k. The
+        distribution weights are not fit, but estimated from the predicted class probabilities of the confidence
+        distribution.
+
+        :param confidences: Numpy array of shape (num_samples, num_classes);
+                            confidence distribution to fit classifier to
+        :param initial_parameters: Numpy array of shape (3,) ((2,) for simplified_fitting=True)
+                       Corresponds to initial guesses for each parameter 'class' alpha, sigma and distribution_weights
+                       If None, uses [1, 1, 1/num_classes]
+        :param parameter_bounds: Sequence of 3 (2 for simplified_fitting=True) tuples (lower_bound, upper_bound)
+                        Corresponds to the bounds on each parameter 'class',  alpha, sigma and distribution_weights
+                        A lower/upper bound of None corresponds to unbounded parameters
+                        If None, uses intervals [(0, + infinity), (0, + infinity), (0,1)]
+        :param simplified_fitting: If False directly fits Multi-Dirichlet FC to confidence distribution
+                                   If True fits each dirichlet separately. Only fits alpha and sigma, not
+                                   distribution_weights
+        :param kwargs: passed to ``scipy.optimize.minimize``
+        :return: If simplfied_fitting=False: scipy OptimizeResult
+                 If simplified_fitting=True: List of num_classes OptimizeResults, one for each separate dirichlet fit
+        """
+
+        # rescale confidences to avoid divergences on sides of simplex and renormalize
+        confidences = (
+            confidences * (confidences.shape[0] - 1) + 1 / self.num_classes
+        ) / confidences.shape[0]
+        confidences = confidences / np.sum(confidences, axis=1)[:, None]
+
+        if not simplified_fitting:
+            if initial_parameters is None:
+                initial_parameters = np.array([1, 1, 1 / self.num_classes])
+            if parameter_bounds is None:
+                # dirichlet distribution undefined for alpha/sigma parameters exactly = 0
+                parameter_bounds = [(0.0001, None)] * 2 + [(0, 1)]
+
+            # scipy requires an initial guess and a bound (lower, upper) for each parameter
+            # not just each parameter class
+            initial_parameters = np.repeat(initial_parameters, self.num_classes)
+            parameter_bounds = [
+                pair for pair in parameter_bounds for i in range(self.num_classes)
+            ]
+
+            nll = lambda parms: -np.sum(
+                np.log(self.pdf(confidences, *np.split(parms, 3)))
+            )
+            mle_fit = scipy.optimize.minimize(
+                nll, initial_parameters, bounds=parameter_bounds
+            )
+            self.set_parameters(*np.split(mle_fit.x, 3))
+
+            return mle_fit
+
+        if simplified_fitting:
+            if initial_parameters is None:
+                initial_parameters = np.array([1, 1])
+            if parameter_bounds is None:
+                # dirichlet distribution undefined for alpha/sigma parameters exactly = 0
+                parameter_bounds = [(0.0001, None)] * 2
+
+            predicted_class = np.argmax(confidences, axis=1)
+            class_split_confidences = [
+                confidences[predicted_class == i, :] for i in range(self.num_classes)
+            ]
+
+            estimated_distribution_weights = [
+                k_class_conf.shape[0] for k_class_conf in class_split_confidences
+            ]
+            estimated_distribution_weights = estimated_distribution_weights / np.sum(
+                estimated_distribution_weights
+            )
+
+            mle_fits = []
+
+            for k, k_class_confidences in enumerate(class_split_confidences):
+
+                def k_dir_nll(alpha_k, sigma_k):
+                    alpha = np.ones(self.num_classes)
+                    alpha[k] = alpha_k
+                    sigma = np.ones(self.num_classes)
+                    sigma[k] = sigma_k
+                    # 'isolate' the k'th dirichlet distribution
+                    distribution_weights = np.zeros(self.num_classes)
+                    distribution_weights[k] = 1
+                    return -np.sum(
+                        np.log(
+                            self.pdf(
+                                k_class_confidences, alpha, sigma, distribution_weights
+                            )
+                        )
+                    )
+
+                k_initial_parameters = initial_parameters
+                k_parameter_bounds = parameter_bounds
+
+                k_dir_mle_fit = scipy.optimize.minimize(
+                    lambda parms: k_dir_nll(*parms),
+                    k_initial_parameters,
+                    bounds=k_parameter_bounds,
+                    **kwargs,
+                )
+                mle_fits.append(k_dir_mle_fit)
+
+            self.set_alpha(np.array([k_mle_fit.x[0] for k_mle_fit in mle_fits]))
+            self.set_sigma(np.array([k_mle_fit.x[1] for k_mle_fit in mle_fits]))
+            self.set_distribution_weights(estimated_distribution_weights)
+
+        return mle_fits
