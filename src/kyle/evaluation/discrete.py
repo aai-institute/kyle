@@ -22,9 +22,12 @@ class EvalStats:
         assert (
             len(y_true.shape) == 1
         ), f"y_true has to be 1-dimensional, instead got shape: {y_true.shape}"
-        assert len(confidences.shape) == 2 and confidences.shape[0] == len(
-            y_true
+        assert (
+            len(confidences.shape) == 2
         ), f"predicted_probabilities have to be of shape (#samples, #classes), instead got {confidences.shape}"
+        assert confidences.shape[0] == len(
+            y_true
+        ), f"Mismatch between number of data points in confidences and labels, {confidences.shape[0]} != {len(y_true)}"
         self.num_samples = len(y_true)
         self.num_classes = confidences.shape[1]
         self.y_true = y_true
@@ -240,13 +243,19 @@ class EvalStats:
             if display_weights:
                 # rescale the weights such that the maximum is at 1/2 for improved visibility
                 weights = 1 / 2 * weights / weights.max()
-                plt.bar(x_values, weights, alpha=0.2, width=1 / self.bins, color=color)
+                plt.bar(
+                    x_values,
+                    weights,
+                    alpha=0.2,
+                    width=1 / self.bins,
+                    color=color,
+                    label=f"bin_weights for {label}",
+                )
 
         axes = plt.gca()
         axes.set_xlim([0, 1])
         axes.set_ylim([0, 1])
         plt.legend(loc="best")
-        plt.show()
 
     def plot_confidence_distributions(
         self, class_labels: Sequence[Union[int, str]], new_fig=True

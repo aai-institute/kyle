@@ -1,1 +1,1 @@
-from .calibration_methods import BaseCalibrationMethod, TemperatureScaling
+from .calibration_methods import *
