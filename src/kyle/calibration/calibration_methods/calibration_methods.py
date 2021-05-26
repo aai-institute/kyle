@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
+import netcal.binning as bn
+import netcal.scaling as scl
 import numpy as np
 from netcal import AbstractCalibration
-from netcal.scaling import BetaCalibration as netcal_BetaCalibration
-from netcal.scaling import TemperatureScaling as netcal_TemperatureScaling
 from sklearn.base import BaseEstimator
 
 
@@ -51,7 +51,7 @@ def _get_confidences_from_netcal_calibrator(
 # TODO: this is definitely not the final class structure. For now its ok, I want to completely decouple from netcal soon
 class TemperatureScaling(BaseCalibrationMethod):
     def __init__(self):
-        self.netcal_temp_scaling = netcal_TemperatureScaling()
+        self.netcal_temp_scaling = scl.TemperatureScaling()
 
     def fit(self, confidences: np.ndarray, ground_truth: np.ndarray):
         self.netcal_temp_scaling.fit(confidences, ground_truth)
@@ -64,7 +64,7 @@ class TemperatureScaling(BaseCalibrationMethod):
 
 class BetaCalibration(BaseCalibrationMethod):
     def __init__(self):
-        self.netcal_beta_calibration = netcal_BetaCalibration()
+        self.netcal_beta_calibration = scl.BetaCalibration()
 
     def fit(self, confidences: np.ndarray, ground_truth: np.ndarray):
         self.netcal_beta_calibration.fit(confidences, ground_truth)
@@ -72,6 +72,19 @@ class BetaCalibration(BaseCalibrationMethod):
     def get_calibrated_confidences(self, confidences: np.ndarray):
         return _get_confidences_from_netcal_calibrator(
             confidences, self.netcal_beta_calibration
+        )
+
+
+class IsotonicRegression(BaseCalibrationMethod):
+    def __init__(self):
+        self.netcal_regression = bn.IsotonicRegression()
+
+    def fit(self, confidences: np.ndarray, ground_truth: np.ndarray):
+        self.netcal_regression.fit(confidences, ground_truth)
+
+    def get_calibrated_confidences(self, confidences: np.ndarray):
+        return _get_confidences_from_netcal_calibrator(
+            confidences, self.netcal_regression
         )
 
 
