@@ -189,20 +189,24 @@ class EvalStats:
         members_per_bin = np.zeros(self.bins)
         accuracies_per_bin = np.zeros(self.bins)
         mean_confidences_per_bin = np.zeros(self.bins)
+        discretized_top_class_confidences = self._discretized_confidences.max(axis=1)
         for i, probability in enumerate(self._discretized_probab_values):
-            probability_bin_mask = self._top_class_confidences == probability
+            probability_bin_mask = discretized_top_class_confidences == probability
+            cur_members = np.sum(probability_bin_mask)
+            if cur_members == 0:
+                members_per_bin[i] = 0
+                accuracies_per_bin[i] = 0
+                mean_confidences_per_bin[i] = 0
+                continue
+
             cur_gt_labels = self.y_true[probability_bin_mask]
             cur_pred_labels = self.y_pred[probability_bin_mask]
             cur_top_class_confidences = self._top_class_confidences[
                 probability_bin_mask
             ]
 
-            cur_members = np.sum(probability_bin_mask)
             cur_accuracy = safe_accuracy_score(cur_gt_labels, cur_pred_labels)
-            if len(cur_top_class_confidences) > 0:
-                cur_mean_confidence = cur_top_class_confidences.mean()
-            else:
-                cur_mean_confidence = probability
+            cur_mean_confidence = cur_top_class_confidences.mean()
             members_per_bin[i] = cur_members
             accuracies_per_bin[i] = cur_accuracy
             mean_confidences_per_bin[i] = cur_mean_confidence
