@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import Generic, List, Optional, TypeVar
 
 import netcal.binning as bn
 import netcal.scaling as scl
@@ -48,44 +48,44 @@ def _get_confidences_from_netcal_calibrator(
     return calibrated_confs
 
 
+TNetcalModel = TypeVar("TNetcalModel", bound=AbstractCalibration)
+
+
 # TODO: this is definitely not the final class structure. For now its ok, I want to completely decouple from netcal soon
-class TemperatureScaling(BaseCalibrationMethod):
-    def __init__(self):
-        self.netcal_temp_scaling = scl.TemperatureScaling()
+class NetcalBasedCalibration(BaseCalibrationMethod, Generic[TNetcalModel]):
+    def __init__(self, netcal_model: TNetcalModel):
+        self.netcal_model = netcal_model
 
     def fit(self, confidences: np.ndarray, ground_truth: np.ndarray):
-        self.netcal_temp_scaling.fit(confidences, ground_truth)
+        self.netcal_model.fit(confidences, ground_truth)
 
     def get_calibrated_confidences(self, confidences: np.ndarray) -> np.ndarray:
-        return _get_confidences_from_netcal_calibrator(
-            confidences, self.netcal_temp_scaling
-        )
+        return _get_confidences_from_netcal_calibrator(confidences, self.netcal_model)
 
 
-class BetaCalibration(BaseCalibrationMethod):
+class TemperatureScaling(NetcalBasedCalibration[scl.TemperatureScaling]):
     def __init__(self):
-        self.netcal_beta_calibration = scl.BetaCalibration()
-
-    def fit(self, confidences: np.ndarray, ground_truth: np.ndarray):
-        self.netcal_beta_calibration.fit(confidences, ground_truth)
-
-    def get_calibrated_confidences(self, confidences: np.ndarray):
-        return _get_confidences_from_netcal_calibrator(
-            confidences, self.netcal_beta_calibration
-        )
+        super().__init__(scl.TemperatureScaling())
 
 
-class IsotonicRegression(BaseCalibrationMethod):
+class BetaCalibration(NetcalBasedCalibration[scl.BetaCalibration]):
     def __init__(self):
-        self.netcal_regression = bn.IsotonicRegression()
+        super().__init__(scl.BetaCalibration())
 
-    def fit(self, confidences: np.ndarray, ground_truth: np.ndarray):
-        self.netcal_regression.fit(confidences, ground_truth)
 
-    def get_calibrated_confidences(self, confidences: np.ndarray):
-        return _get_confidences_from_netcal_calibrator(
-            confidences, self.netcal_regression
-        )
+class LogisticCalibration(NetcalBasedCalibration[scl.LogisticCalibration]):
+    def __init__(self):
+        super().__init__(scl.LogisticCalibration())
+
+
+class IsotonicRegression(NetcalBasedCalibration[bn.IsotonicRegression]):
+    def __init__(self):
+        super().__init__(bn.IsotonicRegression())
+
+
+class HistogramBinning(NetcalBasedCalibration[bn.HistogramBinning]):
+    def __init__(self, bins=20):
+        super().__init__(bn.HistogramBinning(bins=20))
 
 
 class ClassWiseCalibration(BaseCalibrationMethod):
