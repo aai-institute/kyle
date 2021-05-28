@@ -6,3 +6,4 @@ anybadge
 pandas
 matplotlib
 scikit-learn
+tqdm
