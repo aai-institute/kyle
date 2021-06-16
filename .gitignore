@@ -134,3 +134,5 @@ dmypy.json
 
 # reports
 pylint.html
+
+data

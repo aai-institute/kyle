@@ -3,4 +3,8 @@ scikit-learn~=0.23.1
 matplotlib~=3.2.1
 scipy~=1.4
 torch==1.6.0
+torchvision==0.7.0
+kornia~=0.5
+pytorch-lightning==1.2.8
 netcal~=1.0
+
