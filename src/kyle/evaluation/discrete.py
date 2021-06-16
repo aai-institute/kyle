@@ -41,6 +41,19 @@ class EvalStats:
         self._discretized_probab_values: np.ndarray = None
         self.set_bins(bins)
 
+    def expected_confidence(self, class_label: Union[int, str] = TOP_CLASS_LABEL):
+        """
+        Returns the expected confidence for the selected class or for the predictions (default)
+
+        :param class_label: either the class label as int or "top_class"
+        :return:
+        """
+        if class_label == self.TOP_CLASS_LABEL:
+            confs = self._top_class_confidences
+        else:
+            confs = self.confidences[:, class_label]
+        return float(np.mean(confs))
+
     def set_bins(self, bins: int):
         self.bins = bins
         self._discretized_probab_values = (np.arange(self.bins) + 0.5) / self.bins
@@ -83,7 +96,7 @@ class EvalStats:
         total_members = np.sum(members_per_bin)
         if total_members == 0:
             return 0.0
-        result = np.sum(np.abs(probabilities - confidences) * members_per_bin)
+        result = float(np.sum(np.abs(probabilities - confidences) * members_per_bin))
         result /= total_members
         return result
 
