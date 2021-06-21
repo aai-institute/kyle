@@ -12,9 +12,16 @@ resources = {"metadata": {"path": NOTEBOOKS_DIR}}
 log = logging.getLogger(__name__)
 
 
-@pytest.mark.parametrize(
-    "notebook", [file for file in os.listdir(NOTEBOOKS_DIR) if file.endswith(".ipynb")]
-)
+notebooks_to_ignore = ["evaluating_cal_methods.ipynb"]
+
+notebooks_to_test = [
+    file
+    for file in os.listdir(NOTEBOOKS_DIR)
+    if file.endswith(".ipynb") and file not in notebooks_to_ignore
+]
+
+
+@pytest.mark.parametrize("notebook", notebooks_to_test)
 def test_notebook(notebook):
     notebook_path = os.path.join(NOTEBOOKS_DIR, notebook)
     log.info(f"Reading jupyter notebook from {notebook_path}")
