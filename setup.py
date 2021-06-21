@@ -2,8 +2,8 @@ from setuptools import find_packages, setup
 
 test_requirements = ["pytest"]
 docs_requirements = [
-    "Sphinx==2.4.2",
-    "sphinxcontrib-websupport==1.2.0",
+    "Sphinx==3.2.1",
+    "sphinxcontrib-websupport==1.2.4",
     "sphinx_rtd_theme",
 ]
 

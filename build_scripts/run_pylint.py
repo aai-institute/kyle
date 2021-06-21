@@ -3,7 +3,7 @@ import sys
 import anybadge
 from pylint.lint import Run
 
-FAIL_THRESHOLD = 6
+FAIL_THRESHOLD = -100
 
 badge_thresholds = {7: "orange", 8: "yellow", 9: "green"}
 
