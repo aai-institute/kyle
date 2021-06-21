@@ -15,7 +15,7 @@ setup(
     license="MIT",
     url="https://github.com/appliedAI-Initiative/kyle",
     include_package_data=True,
-    version="0.1.0-dev2",
+    version="0.1.0-dev3",
     description="appliedAI classifier calibration library",
     install_requires=open("requirements.txt").readlines(),
     setup_requires=["wheel"],
