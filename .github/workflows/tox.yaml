@@ -40,15 +40,19 @@ jobs:
       - name: Install Tox and Python Packages
         run: pip install tox
       - name: Run Tox
-        run: tox
+        run: tox -e docs
       - name: Prepare Pages
-        if: github.ref == 'refs/heads/develop'
+#        if: github.ref == 'refs/heads/develop'
         run: |
+          ls docs/_build/html
+          ls htmlcov/
           mv docs/_build/html/* public/docs
           mv htmlcov/* public/coverage
+          ls public/docs
+          ls public/coverage
       - name: Deploy Pages
         uses: JamesIves/github-pages-deploy-action@3.7.1
-        if: github.ref == 'refs/heads/develop'
+#        if: github.ref == 'refs/heads/develop'
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: gh-pages
