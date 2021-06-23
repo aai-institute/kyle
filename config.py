@@ -1,9 +1,7 @@
 import json
 import logging.handlers
 import os
-
-from typing import List, Union, Dict
-
+from typing import Dict, List, Union
 
 log = logging.getLogger(__name__)
 
@@ -16,6 +14,7 @@ class __Configuration:
     """
     Holds essential configuration entries
     """
+
     log = log.getChild(__qualname__)
 
     def __init__(self, config_files: List[str] = None):
@@ -30,12 +29,16 @@ class __Configuration:
             file_path = os.path.join(source_path, filename)
             if os.path.exists(file_path):
                 self.log.info("Reading configuration from %s" % file_path)
-                with open(file_path, 'r') as f:
+                with open(file_path, "r") as f:
                     self.config.update(json.load(f))
         if not self.config:
-            raise Exception("No configuration entries could be read from %s" % config_files)
+            raise Exception(
+                "No configuration entries could be read from %s" % config_files
+            )
 
-    def _get_non_empty_entry(self, key: Union[str, List[str]]) -> Union[float, str, List, Dict]:
+    def _get_non_empty_entry(
+        self, key: Union[str, List[str]]
+    ) -> Union[float, str, List, Dict]:
         """
         Retrieves an entry from the configuration
 
@@ -65,10 +68,14 @@ class __Configuration:
             if isinstance(key, list):
                 key = ".".join(key)  # purely for logging
             if create:
-                log.info(f"Configured directory {key}='{path}' not found; will create it")
+                log.info(
+                    f"Configured directory {key}='{path}' not found; will create it"
+                )
                 os.makedirs(path)
             else:
-                raise FileNotFoundError(f"Configured directory {key}='{path}' does not exist.")
+                raise FileNotFoundError(
+                    f"Configured directory {key}='{path}' does not exist."
+                )
         return path.replace("/", os.sep)
 
     @property
