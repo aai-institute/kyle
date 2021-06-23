@@ -2,6 +2,7 @@ tox
 jupyter
 pytest
 pylint
+bump2version
 anybadge
 pandas
 tqdm
