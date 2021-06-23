@@ -132,14 +132,14 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = "kyle"
+package_name = "kyle-calibration"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The full version, including alpha/beta/rc tags.
-version = pkg_resources.get_distribution(project).version
+version = pkg_resources.get_distribution(package_name).version
 release = version
 # The short X.Y version.
 major_v, minor_v = version.split(".")[:2]
