@@ -85,7 +85,7 @@ class IsotonicRegression(NetcalBasedCalibration[bn.IsotonicRegression]):
 
 class HistogramBinning(NetcalBasedCalibration[bn.HistogramBinning]):
     def __init__(self, bins=20):
-        super().__init__(bn.HistogramBinning(bins=20))
+        super().__init__(bn.HistogramBinning(bins=bins))
 
 
 class ClassWiseCalibration(BaseCalibrationMethod):
