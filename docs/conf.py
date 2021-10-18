@@ -132,14 +132,14 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = "kyle"
+package_name = "kyle-calibration"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The full version, including alpha/beta/rc tags.
-version = pkg_resources.get_distribution(project).version
+version = pkg_resources.get_distribution(package_name).version
 release = version
 # The short X.Y version.
 major_v, minor_v = version.split(".")[:2]
@@ -300,7 +300,7 @@ latex_elements = {
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [("index", "kyle", "", ["Miguel and Mischa"], 1)]
+man_pages = [("index", "kyle", "", ["appliedAI"], 1)]
 
 # If true, show URL addresses after external links.
 # man_show_urls = False
