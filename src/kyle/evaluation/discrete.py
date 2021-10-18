@@ -1,4 +1,4 @@
-from typing import Sequence, Union
+from typing import Sequence, Union, Dict
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -321,3 +321,15 @@ class EvalStats:
         plt.legend(loc="best")
         if new_fig:
             plt.show()
+
+    def plot_gt_distribution(self, label_names: Dict[int, str] = None):
+        class_labels, counts = np.unique(self.y_true, return_counts=True)
+        if label_names is not None:
+            class_labels = [label_names.get(l, l) for l in class_labels]
+
+        fig, ax = plt.subplots()
+        ax.pie(counts, labels=class_labels, autopct="%1.1f%%", startangle=90)
+        ax.axis("equal")  # Equal aspect ratio ensures that pie is drawn as a circle.
+        ax.set_title("Ground Truth Distribution")
+        fig.show()
+
