@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from scipy.special import softmax
 from typing import Callable, Sequence
 
 import numpy as np
@@ -40,6 +41,25 @@ class SimplexAut(ABC):
                 f"Bad implementation: Output has to be from a simplex of suitable dimension"
             )
         return x.squeeze()
+
+
+class LogitsBasedSimplexAut(SimplexAut, ABC):
+    @abstractmethod
+    def transform_logits(self, logits: np.ndarray) -> np.ndarray:
+        pass
+
+    def _transform(self, x: np.ndarray) -> np.ndarray:
+        logits = np.log(x)
+        return softmax(self.transform_logits(logits), axis=1)
+
+
+class TempScaling(LogitsBasedSimplexAut):
+    def __init__(self, temperature: float):
+        self.temperature = temperature
+        super().__init__()
+
+    def transform_logits(self, logits: np.ndarray) -> np.ndarray:
+        return self.temperature * logits
 
 
 class IdentitySimplexAut(SimplexAut):
