@@ -52,11 +52,9 @@ class FakeClassifier(ABC):
         :param n_samples:
         :return: tuple of arrays of shapes (n_samples,), (n_samples, n_classes)
         """
-        confidences = self.sample_confidences(n_samples)
-        gt_probabilities = self.simplex_automorphism.transform(
-            confidences, check_io=self.check_io
-        )
-        gt_labels = sample_index(gt_probabilities)
+        calibrated_confidences = self.sample_confidences(n_samples)
+        gt_labels = sample_index(calibrated_confidences)
+        confidences = self.simplex_automorphism.transform(calibrated_confidences)
         return gt_labels, confidences
 
     def __str__(self):
