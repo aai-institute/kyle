@@ -1,4 +1,4 @@
-from typing import Sequence, Union, Dict
+from typing import Dict, Sequence, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -332,4 +332,3 @@ class EvalStats:
         ax.axis("equal")  # Equal aspect ratio ensures that pie is drawn as a circle.
         ax.set_title("Ground Truth Distribution")
         fig.show()
-

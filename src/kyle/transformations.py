@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-from scipy.special import softmax
 from typing import Callable, Sequence
 
 import numpy as np
+from scipy.special import softmax
 
 from kyle.util import in_simplex
 
