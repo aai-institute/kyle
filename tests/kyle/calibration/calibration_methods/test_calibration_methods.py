@@ -1,4 +1,5 @@
 import pytest
+from sklearn import clone
 
 from kyle.calibration.calibration_methods import TemperatureScaling
 from kyle.metrics import ECE
@@ -12,6 +13,10 @@ def metric():
 @pytest.fixture(scope="module")
 def calibration_method():
     return TemperatureScaling()
+
+
+def test_calibration_methods_clonability(calibration_method):
+    clone(calibration_method)
 
 
 def test_methods_calibrationErrorLessAfterCalibration(
