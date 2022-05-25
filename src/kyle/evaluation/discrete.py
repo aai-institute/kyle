@@ -1,10 +1,31 @@
-from typing import Dict, Sequence, Union
+from abc import ABC, abstractmethod
+
+from enum import Enum
+
+from typing import Dict, Sequence, Union, Literal, Optional, overload
 
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import ListedColormap
 
 from kyle.util import safe_accuracy_score
+
+
+class BinningScheme(ABC):
+    pass
+
+
+class HomogeneousBinning(BinningScheme):
+    pass
+
+
+class AdaptiveBinning(BinningScheme):
+    pass
+
+
+class BinningSchemesEnum(Enum):
+    homogenous = HomogeneousBinning
+    adaptive = AdaptiveBinning
 
 
 class EvalStats:
@@ -18,7 +39,15 @@ class EvalStats:
     :param bins: on how many homogeneous bins to evaluate the statistics
     """
 
-    def __init__(self, y_true: np.ndarray, confidences: np.ndarray, bins=30):
+    def __init__(
+        self,
+        y_true: np.ndarray,
+        confidences: np.ndarray,
+        bins=30,
+        binning_scheme: Union[
+            Literal["homogenous", "adaptive"], BinningScheme
+        ] = "homogenous",
+    ):
         assert (
             len(y_true.shape) == 1
         ), f"y_true has to be 1-dimensional, instead got shape: {y_true.shape}"
@@ -35,10 +64,16 @@ class EvalStats:
         self.confidences = confidences
         self._top_class_confidences = confidences.max(axis=1)
 
-        self.bins: int = None
+        self.bins: Optional[int] = None
         # due to discretization they don't sum to 1 anymore
-        self._discretized_confidences: np.ndarray = None
-        self._discretized_probab_values: np.ndarray = None
+        self._discretized_confidences: Optional[np.ndarray] = None
+        self._discretized_probab_values: Optional[np.ndarray] = None
+        if isinstance(binning_scheme, str):
+            binning_scheme_class = BinningSchemesEnum[binning_scheme].value
+            # TODO: bring in kwargs for constructor in some way
+            self.binning_scheme = binning_scheme_class()
+        else:
+            self.binning_scheme = binning_scheme
         self.set_bins(bins)
 
     def expected_confidence(self, class_label: Union[int, str] = TOP_CLASS_LABEL):
@@ -54,7 +89,10 @@ class EvalStats:
             confs = self.confidences[:, class_label]
         return float(np.mean(confs))
 
+    # TODO: move functionality to binning class
     def set_bins(self, bins: int):
+        # self.binning_scheme(something)
+
         self.bins = bins
         self._discretized_probab_values = (np.arange(self.bins) + 0.5) / self.bins
         bin_boundaries = np.linspace(0, 1, self.bins + 1)
