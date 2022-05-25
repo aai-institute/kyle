@@ -27,11 +27,13 @@ def test_notebook(notebook):
     log.info(f"Reading jupyter notebook from {notebook_path}")
     with open(notebook_path) as f:
         nb = nbformat.read(f, as_version=4)
-    ep = ExecutePreprocessor(timeout=600)
-    with ep.setup_preprocessor(nb, resources=resources):
+    ep = ExecutePreprocessor(timeout=600, resource=resources)
+    # HACK: this is needed because some really smart person didn't test correctly the init of ExecutePreprocessor
+    ep.nb = nb
+    with ep.setup_kernel():
         for i, cell in enumerate(nb["cells"]):
             log.info(f"processing cell {i} from {notebook}")
-            ep.preprocess_cell(cell, resources=resources, cell_index=i)
+            ep.preprocess_cell(cell, resources=resources, index=i)
 
     # saving the executed notebook to docs
     output_path = os.path.join(DOCS_DIR, notebook)
