@@ -12,11 +12,38 @@ from kyle.util import safe_accuracy_score
 
 
 class BinningScheme(ABC):
-    pass
+
+    @abstractmethod
+    def __init__(self,
+                 confidences: np.ndarray,
+                 _discretized_probab_values: np.ndarray,
+                 int: bins):
+        pass
+
+    @abstractmethod
+    def set_bins(self):
+        pass
 
 
 class HomogeneousBinning(BinningScheme):
-    pass
+
+    def __init__(self,
+                 confidences: np.ndarray,
+                 _discretized_probab_values: np.ndarray,
+                 bins=30):
+
+        self.confidences = confidences
+        self._discretized_probab_values = _discretized_probab_values
+        self.bins = bins
+
+    def set_bins(self):
+        self._discretized_probab_values = (np.arange(self.bins) + 0.5) / self.bins
+        bin_boundaries = np.linspace(0, 1, self.bins + 1)
+        bin_boundaries[0] = -1  # in order to associate predicted probabilities = 0 to the right bin
+        binned_confidences = (
+                np.digitize(x=self.confidences, bins=bin_boundaries, right=True) - 1
+        )
+        return (binned_confidences + 0.5) / self.bins
 
 
 class AdaptiveBinning(BinningScheme):
@@ -57,6 +84,7 @@ class EvalStats:
         assert confidences.shape[0] == len(
             y_true
         ), f"Mismatch between number of data points in confidences and labels, {confidences.shape[0]} != {len(y_true)}"
+
         self.num_samples = len(y_true)
         self.num_classes = confidences.shape[1]
         self.y_true = y_true
@@ -64,17 +92,22 @@ class EvalStats:
         self.confidences = confidences
         self._top_class_confidences = confidences.max(axis=1)
 
-        self.bins: Optional[int] = None
+        # self.bins: Optional[int] = None
+        self.bins = bins
+
+        # why not initialize with __init__ parameters?
         # due to discretization they don't sum to 1 anymore
         self._discretized_confidences: Optional[np.ndarray] = None
         self._discretized_probab_values: Optional[np.ndarray] = None
+
         if isinstance(binning_scheme, str):
             binning_scheme_class = BinningSchemesEnum[binning_scheme].value
             # TODO: bring in kwargs for constructor in some way
-            self.binning_scheme = binning_scheme_class()
+            self.binning_scheme = binning_scheme_class(self.confidences, self._discretized_prob_values, self.bins)
         else:
             self.binning_scheme = binning_scheme
-        self.set_bins(bins)
+
+        self._discretized_confidences = binning_scheme.setbins()
 
     def expected_confidence(self, class_label: Union[int, str] = TOP_CLASS_LABEL):
         """
@@ -90,19 +123,19 @@ class EvalStats:
         return float(np.mean(confs))
 
     # TODO: move functionality to binning class
-    def set_bins(self, bins: int):
-        # self.binning_scheme(something)
-
-        self.bins = bins
-        self._discretized_probab_values = (np.arange(self.bins) + 0.5) / self.bins
-        bin_boundaries = np.linspace(0, 1, self.bins + 1)
-        bin_boundaries[
-            0
-        ] = -1  # in order to associate predicted probabilities = 0 to the right bin
-        binned_confidences = (
-            np.digitize(x=self.confidences, bins=bin_boundaries, right=True) - 1
-        )
-        self._discretized_confidences = (binned_confidences + 0.5) / self.bins
+#    def set_bins(self, bins: int):
+#        # self.binning_scheme(something)
+#
+#        self.bins = bins
+#        self._discretized_probab_values = (np.arange(self.bins) + 0.5) / self.bins
+#        bin_boundaries = np.linspace(0, 1, self.bins + 1)
+#        bin_boundaries[
+#            0
+#        ] = -1  # in order to associate predicted probabilities = 0 to the right bin
+#        binned_confidences = (
+#            np.digitize(x=self.confidences, bins=bin_boundaries, right=True) - 1
+#        )
+#        self._discretized_confidences = (binned_confidences + 0.5) / self.bins
 
     def accuracy(self):
         return safe_accuracy_score(self.y_true, self.y_pred)
