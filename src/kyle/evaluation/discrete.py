@@ -41,10 +41,8 @@ def binary_classifier_reliability(
         (or class 1, if labels passed as integers). Should be a numpy array of shape (n_samples, )
     :param y_prob: array of shape (n_samples, ) containing True and False or integers (1, 0) respectively
     :param strategy: Strategy used to define the widths of the bins.
-        **uniform**
-            The bins have identical widths.
-        **quantile**
-            The bins have the same number of samples and depend on y_prob.
+        **uniform** The bins have identical widths.
+        **quantile** The bins have the same number of samples and depend on y_prob.
     :return: named tuple containing arrays with confidences, accuracies, members, bin_edges
     """
     y_true = column_or_1d(y_true)
