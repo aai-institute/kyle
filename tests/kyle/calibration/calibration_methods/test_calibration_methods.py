@@ -2,11 +2,11 @@ import pytest
 from sklearn import clone
 
 from kyle.calibration.calibration_methods import (
-    HistogramBinning,
-    TemperatureScaling,
-    IsotonicRegression,
     BetaCalibration,
+    HistogramBinning,
+    IsotonicRegression,
     LogisticCalibration,
+    TemperatureScaling,
 )
 from kyle.metrics import ECE
 
@@ -21,13 +21,16 @@ def calibration_method():
     return TemperatureScaling()
 
 
-@pytest.mark.parametrize("calibration_method", [
-    HistogramBinning(),
-    TemperatureScaling(),
-    IsotonicRegression(),
-    BetaCalibration(),
-    LogisticCalibration(),
-])
+@pytest.mark.parametrize(
+    "calibration_method",
+    [
+        HistogramBinning(),
+        TemperatureScaling(),
+        IsotonicRegression(),
+        BetaCalibration(),
+        LogisticCalibration(),
+    ],
+)
 def test_calibration_methods_clonability(calibration_method):
     clone(calibration_method)
 
