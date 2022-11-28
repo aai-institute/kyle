@@ -6,6 +6,7 @@ import numpy as np
 from kyle.util import in_simplex
 
 
+# TODO: replace by our own implementations used in EvalStats
 class BaseCalibrationError(ABC):
     @abstractmethod
     def _compute(
