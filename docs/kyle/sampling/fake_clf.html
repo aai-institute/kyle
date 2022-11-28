@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>fake_clf &mdash; Python 0.1.8.dev0 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "tex2jax_ignore|mathjax_ignore|document", "processClass": "tex2jax_process|mathjax_process|math|output_area"}})</script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="transformations" href="../transformations.html" />
+    <link rel="prev" title="sampling" href="../sampling.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> Python
+          </a>
+              <div class="version">
+                0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p><span class="caption-text">Guides and Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../calibration_demo.html">What is calibration?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../calibration_demo.html#Model-calibration">Model calibration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../calibration_demo.html#Model-agnostic-calibration">Model-agnostic calibration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fake_classifiers.html">Dirichlet fake classifiers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fake_classifiers.html#Analytical-results">Analytical results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../metric_convergence_analysis.html">Case 1: RF and MLP on Synthetic Data</a></li>
+</ul>
+<p><span class="caption-text">Modules</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Library Modules</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../calibration.html">calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../datasets.html">datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../evaluation.html">evaluation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../integrals.html">integrals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../metrics.html">metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models.html">models</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../sampling.html">sampling</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">fake_clf</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../transformations.html">transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../util.html">util</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Python</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Library Modules</a></li>
+          <li class="breadcrumb-item"><a href="../sampling.html">sampling</a></li>
+      <li class="breadcrumb-item active">fake_clf</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/kyle/sampling/fake_clf.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="module-kyle.sampling.fake_clf">
+<span id="fake-clf"></span><h1>fake_clf<a class="headerlink" href="#module-kyle.sampling.fake_clf" title="Permalink to this headline"></a></h1>
+<dl class="py class">
+<dt id="kyle.sampling.fake_clf.FakeClassifier">
+<em class="property">class </em><code class="sig-name descname">FakeClassifier</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_classes</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">simplex_automorphism</span><span class="p">:</span> <span class="n"><a class="reference internal" href="../transformations.html#kyle.transformations.SimplexAut" title="kyle.transformations.SimplexAut">kyle.transformations.SimplexAut</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">check_io</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference external" href="https://gitlab.aai.lab/tl/calibration/kyle/blob/develop/src/kyle/sampling/fake_clf.py#L12"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kyle.sampling.fake_clf.FakeClassifier" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<dl class="py method">
+<dt id="kyle.sampling.fake_clf.FakeClassifier.set_simplex_automorphism">
+<code class="sig-name descname">set_simplex_automorphism</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">aut</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span><a class="reference internal" href="../transformations.html#kyle.transformations.SimplexAut" title="kyle.transformations.SimplexAut">kyle.transformations.SimplexAut</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#kyle.sampling.fake_clf.FakeClassifier.set_simplex_automorphism" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>aut</strong> – if None, the identity automorphism will be set</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kyle.sampling.fake_clf.FakeClassifier.sample_confidences">
+<em class="property">abstract </em><code class="sig-name descname">sample_confidences</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_samples</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#kyle.sampling.fake_clf.FakeClassifier.sample_confidences" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kyle.sampling.fake_clf.FakeClassifier.simplex_automorphism">
+<em class="property">property </em><code class="sig-name descname">simplex_automorphism</code><a class="headerlink" href="#kyle.sampling.fake_clf.FakeClassifier.simplex_automorphism" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kyle.sampling.fake_clf.FakeClassifier.get_sample_arrays">
+<code class="sig-name descname">get_sample_arrays</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_samples</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kyle.sampling.fake_clf.FakeClassifier.get_sample_arrays" title="Permalink to this definition"></a></dt>
+<dd><p>Get arrays with ground truth and predicted probabilities</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>n_samples</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>tuple of arrays of shapes (n_samples,), (n_samples, n_classes)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kyle.sampling.fake_clf.DirichletFC">
+<em class="property">class </em><code class="sig-name descname">DirichletFC</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_classes</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">alpha</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">simplex_automorphism</span><span class="p">:</span> <span class="n"><a class="reference internal" href="../transformations.html#kyle.transformations.SimplexAut" title="kyle.transformations.SimplexAut">kyle.transformations.SimplexAut</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference external" href="https://gitlab.aai.lab/tl/calibration/kyle/blob/develop/src/kyle/sampling/fake_clf.py#L64"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kyle.sampling.fake_clf.DirichletFC" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kyle.sampling.fake_clf.FakeClassifier" title="kyle.sampling.fake_clf.FakeClassifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">kyle.sampling.fake_clf.FakeClassifier</span></code></a></p>
+<dl class="py method">
+<dt id="kyle.sampling.fake_clf.DirichletFC.set_alpha">
+<code class="sig-name descname">set_alpha</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">alpha</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>numpy.ndarray<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kyle.sampling.fake_clf.DirichletFC.set_alpha" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>alpha</strong> – if None, the default value of [1, …, 1] will be set</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kyle.sampling.fake_clf.DirichletFC.alpha">
+<em class="property">property </em><code class="sig-name descname">alpha</code><a class="headerlink" href="#kyle.sampling.fake_clf.DirichletFC.alpha" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kyle.sampling.fake_clf.DirichletFC.sample_confidences">
+<code class="sig-name descname">sample_confidences</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_samples</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#kyle.sampling.fake_clf.DirichletFC.sample_confidences" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kyle.sampling.fake_clf.DirichletFC.pdf">
+<code class="sig-name descname">pdf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">confidences</span></em>, <em class="sig-param"><span class="n">alpha</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kyle.sampling.fake_clf.DirichletFC.pdf" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kyle.sampling.fake_clf.DirichletFC.fit">
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">confidences</span></em>, <em class="sig-param"><span class="n">initial_alpha</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">alpha_bounds</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kyle.sampling.fake_clf.DirichletFC.fit" title="Permalink to this definition"></a></dt>
+<dd><p>Fits the dirichlet fake classifier to the provided confidence distribution using maximum likelihood estimation
+and sets the fake classifier parameters to the best fit parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>confidences</strong> – Numpy array of shape (num_samples, num_classes);
+confidence distribution to fit classifier to</p></li>
+<li><p><strong>initial_alpha</strong> – Float; Initial guess for fitting alpha parameters</p></li>
+<li><p><strong>alpha_bounds</strong> – Tuple, (lower_bound, upper_bound); Bounds for fitting alpha parameters. A lower/upper bound
+of None corresponds to unbounded parameter</p></li>
+<li><p><strong>kwargs</strong> – passed to <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="kyle.sampling.fake_clf.MultiDirichletFC">
+<em class="property">class </em><code class="sig-name descname">MultiDirichletFC</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_classes</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">alpha</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">sigma</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">distribution_weights</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">simplex_automorphism</span><span class="p">:</span> <span class="n"><a class="reference internal" href="../transformations.html#kyle.transformations.SimplexAut" title="kyle.transformations.SimplexAut">kyle.transformations.SimplexAut</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference external" href="https://gitlab.aai.lab/tl/calibration/kyle/blob/develop/src/kyle/sampling/fake_clf.py#L136"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kyle.sampling.fake_clf.MultiDirichletFC" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kyle.sampling.fake_clf.FakeClassifier" title="kyle.sampling.fake_clf.FakeClassifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">kyle.sampling.fake_clf.FakeClassifier</span></code></a></p>
+<p>A fake classifier that first draws from a K categorical distribution and based on the result then draws from
+1 of K Dirichlet Distributions of a restricted form.
+The K’th Dirichlet Distribution has parameters of the form:  sigma * {1, 1, …, alpha_k, 1, 1, …}; alpha &gt; 1
+where ‘alpha_k’ is at the k’th position.
+Effectively a distribution with a maximum of variable position and variable variance in each corner of the simplex</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_classes</strong> – </p></li>
+<li><p><strong>alpha</strong> – numpy array of shape (num_classes,). k’th entry corresponds to alpha_k for the k’th dirichlet</p></li>
+<li><p><strong>sigma</strong> – numpy array of shape (num_classes,). k’th entry corresponds to sigma for the k’th dirichlet</p></li>
+<li><p><strong>distribution_weights</strong> – numpy array of shape (num_classes,). Probabilities used for drawing from K Categorical</p></li>
+<li><p><strong>simplex_automorphism</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="kyle.sampling.fake_clf.MultiDirichletFC.alpha">
+<em class="property">property </em><code class="sig-name descname">alpha</code><a class="headerlink" href="#kyle.sampling.fake_clf.MultiDirichletFC.alpha" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kyle.sampling.fake_clf.MultiDirichletFC.set_alpha">
+<code class="sig-name descname">set_alpha</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">alpha</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>numpy.ndarray<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kyle.sampling.fake_clf.MultiDirichletFC.set_alpha" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>alpha</strong> – if None, the default value of [1, …, 1] will be set.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kyle.sampling.fake_clf.MultiDirichletFC.sigma">
+<em class="property">property </em><code class="sig-name descname">sigma</code><a class="headerlink" href="#kyle.sampling.fake_clf.MultiDirichletFC.sigma" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kyle.sampling.fake_clf.MultiDirichletFC.set_sigma">
+<code class="sig-name descname">set_sigma</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sigma</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>numpy.ndarray<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kyle.sampling.fake_clf.MultiDirichletFC.set_sigma" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>sigma</strong> – if None, the default value of [1, …, 1] will be set</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kyle.sampling.fake_clf.MultiDirichletFC.distribution_weights">
+<em class="property">property </em><code class="sig-name descname">distribution_weights</code><a class="headerlink" href="#kyle.sampling.fake_clf.MultiDirichletFC.distribution_weights" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kyle.sampling.fake_clf.MultiDirichletFC.set_distribution_weights">
+<code class="sig-name descname">set_distribution_weights</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">distribution_weights</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>numpy.ndarray<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kyle.sampling.fake_clf.MultiDirichletFC.set_distribution_weights" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>distribution_weights</strong> – if None, the default value of [1/num_classes, …, 1/num_classes] will be set</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kyle.sampling.fake_clf.MultiDirichletFC.get_parameters">
+<code class="sig-name descname">get_parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kyle.sampling.fake_clf.MultiDirichletFC.get_parameters" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kyle.sampling.fake_clf.MultiDirichletFC.set_parameters">
+<code class="sig-name descname">set_parameters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">alpha</span></em>, <em class="sig-param"><span class="n">sigma</span></em>, <em class="sig-param"><span class="n">distribution_weights</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kyle.sampling.fake_clf.MultiDirichletFC.set_parameters" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kyle.sampling.fake_clf.MultiDirichletFC.sample_confidences">
+<code class="sig-name descname">sample_confidences</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_samples</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#kyle.sampling.fake_clf.MultiDirichletFC.sample_confidences" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="kyle.sampling.fake_clf.MultiDirichletFC.pdf">
+<code class="sig-name descname">pdf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">confidences</span></em>, <em class="sig-param"><span class="n">alpha</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">sigma</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">distribution_weights</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kyle.sampling.fake_clf.MultiDirichletFC.pdf" title="Permalink to this definition"></a></dt>
+<dd><p>Computes pdf of MultiDirichletFC. Using K categorical distribution to sample from K dirichlet distributions
+is equivalent to sampling from a pdf that is a weighted sum of the K individual dirichlet pdf’s
+:param confidences: numpy array of shape (num_classes,) or (num_samples, num_classes)
+:param distribution_weights: numpy array of shape (num_classes,) uses self.distribution_weights if not provided
+:param sigma: numpy array of shape (num_classes,) uses self.sigma if not provided
+:param alpha: numpy array of shape (num_classes,) uses self.alpha if not provided</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="kyle.sampling.fake_clf.MultiDirichletFC.fit">
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">confidences</span></em>, <em class="sig-param"><span class="n">initial_parameters</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">parameter_bounds</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">simplified_fitting</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#kyle.sampling.fake_clf.MultiDirichletFC.fit" title="Permalink to this definition"></a></dt>
+<dd><p>Fits a Multi-Dirichlet fake classifier to the provided confidence distribution using maximum likeihood
+estimation and sets the fake classifier parameters to the best fit parameters.
+If simplified_fitting is set to False all parameters of the fake classifier are fit directly via MLE
+If simplified_fitting is set to True each dirichlet is fit separately. Alpha and Sigma of the k’th dirichlet
+are fit to the subset of the confidences that predict the k’th class, i.e. for which argmax(c) = k. The
+distribution weights are not fit, but estimated from the predicted class probabilities of the confidence
+distribution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>confidences</strong> – Numpy array of shape (num_samples, num_classes);
+confidence distribution to fit classifier to</p></li>
+<li><p><strong>initial_parameters</strong> – Numpy array of shape (3,) ((2,) for simplified_fitting=True)
+Corresponds to initial guesses for each parameter ‘class’ alpha, sigma and distribution_weights
+If None, uses [1, 1, 1/num_classes]</p></li>
+<li><p><strong>parameter_bounds</strong> – Sequence of 3 (2 for simplified_fitting=True) tuples (lower_bound, upper_bound)
+Corresponds to the bounds on each parameter ‘class’,  alpha, sigma and distribution_weights
+A lower/upper bound of None corresponds to unbounded parameters
+If None, uses intervals [(0, + infinity), (0, + infinity), (0,1)]</p></li>
+<li><p><strong>simplified_fitting</strong> – If False directly fits Multi-Dirichlet FC to confidence distribution
+If True fits each dirichlet separately. Only fits alpha and sigma, not
+distribution_weights</p></li>
+<li><p><strong>kwargs</strong> – passed to <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>If simplfied_fitting=False: scipy OptimizeResult
+If simplified_fitting=True: List of num_classes OptimizeResults, one for each separate dirichlet fit</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../sampling.html" class="btn btn-neutral float-left" title="sampling" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../transformations.html" class="btn btn-neutral float-right" title="transformations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

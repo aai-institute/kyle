@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>integrals &mdash; Python 0.1.8.dev0 documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "tex2jax_ignore|mathjax_ignore|document", "processClass": "tex2jax_process|mathjax_process|math|output_area"}})</script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="metrics" href="metrics.html" />
+    <link rel="prev" title="reliabilities" href="evaluation/reliabilities.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Python
+          </a>
+              <div class="version">
+                0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p><span class="caption-text">Guides and Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../calibration_demo.html">What is calibration?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../calibration_demo.html#Model-calibration">Model calibration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../calibration_demo.html#Model-agnostic-calibration">Model-agnostic calibration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fake_classifiers.html">Dirichlet fake classifiers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fake_classifiers.html#Analytical-results">Analytical results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../metric_convergence_analysis.html">Case 1: RF and MLP on Synthetic Data</a></li>
+</ul>
+<p><span class="caption-text">Modules</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Library Modules</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="calibration.html">calibration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasets.html">datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluation.html">evaluation</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">integrals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metrics.html">metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html">models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sampling.html">sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transformations.html">transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="util.html">util</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Python</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Library Modules</a></li>
+      <li class="breadcrumb-item active">integrals</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/kyle/integrals.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="module-kyle.integrals">
+<span id="integrals"></span><h1>integrals<a class="headerlink" href="#module-kyle.integrals" title="Permalink to this headline"></a></h1>
+<dl class="py class">
+<dt id="kyle.integrals.Integrand">
+<em class="property">class </em><code class="sig-name descname">Integrand</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwds</span></em><span class="sig-paren">)</span><a class="reference external" href="https://gitlab.aai.lab/tl/calibration/kyle/blob/develop/src/kyle/integrals.py#L12"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kyle.integrals.Integrand" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">typing.Protocol</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="kyle.integrals.simplex_integral">
+<code class="sig-name descname">simplex_integral</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span><span class="p">:</span> <span class="n">Callable</span></em>, <em class="sig-param"><span class="n">num_classes</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">boundary_offset</span><span class="o">=</span><span class="default_value">1e-10</span></em>, <em class="sig-param"><span class="n">coord_sum</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference external" href="https://gitlab.aai.lab/tl/calibration/kyle/blob/develop/src/kyle/integrals.py#L17"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kyle.integrals.simplex_integral" title="Permalink to this definition"></a></dt>
+<dd><p>Performs an integral over num_classes-1 dimensional simplex using scipy</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> – function to integrate over the simplex. Should accept num_classes-1 variables</p></li>
+<li><p><strong>num_classes</strong> – equals dimension of the simplex + 1</p></li>
+<li><p><strong>boundary_offset</strong> – can be used to prevent numerical errors due to singularities at the simplex’ boundary</p></li>
+<li><p><strong>coord_sum</strong> – sets sum of coordinates of simplex. For standard simplex sum(x1,x2,…) = 1. Mainly useful for
+simplex_integral_fixed_max</p></li>
+<li><p><strong>kwargs</strong> – will be passed to scipy.integrate.nquad</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="kyle.integrals.simplex_integral_fixed_comp">
+<code class="sig-name descname">simplex_integral_fixed_comp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span><span class="p">:</span> <span class="n">Callable</span></em>, <em class="sig-param"><span class="n">num_classes</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">selected_class</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">x_comp</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference external" href="https://gitlab.aai.lab/tl/calibration/kyle/blob/develop/src/kyle/integrals.py#L51"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kyle.integrals.simplex_integral_fixed_comp" title="Permalink to this definition"></a></dt>
+<dd><p>Performs an integral over the subset of a num_classes-1 dimensional simplex defined by the selected_class component
+of the confidence vector having a fixed value of x_comp, i.e. marginalises out all other classes.</p>
+<p>Computing this involves integrating over a num_classes-2 dimensional non-unit simplex with coord_sum set to 1-x_comp
+and with the selected_class argument of f being set to x_comp</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> – function to integrate over the subset of the simplex. Should accept num_classes-1 variables</p></li>
+<li><p><strong>num_classes</strong> – equals dimension of the simplex + 1</p></li>
+<li><p><strong>selected_class</strong> – selected confidence vector component [0, num_classes-1]</p></li>
+<li><p><strong>x_comp</strong> – fixed value of the selected vector component</p></li>
+<li><p><strong>kwargs</strong> – passed to simplex_integral</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="kyle.integrals.simplex_integral_fixed_max">
+<code class="sig-name descname">simplex_integral_fixed_max</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span><span class="p">:</span> <span class="n">Callable</span></em>, <em class="sig-param"><span class="n">num_classes</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">x_max</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference external" href="https://gitlab.aai.lab/tl/calibration/kyle/blob/develop/src/kyle/integrals.py#L89"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kyle.integrals.simplex_integral_fixed_max" title="Permalink to this definition"></a></dt>
+<dd><p>Performs an integral over the subset of a num_classes-1 dimensional simplex defined by the largest
+coordinate/confidence having a fixed value of x_max, i.e. marginalises over all possible confidence vectors with
+maximum confidence of x_max.</p>
+<p>Computing this integral involves computing the sum of num_classes integrals each over a num_classes-2 dimensional
+simplex. For x_max &gt; 0.5 the integrals are ‘true’ simplex integrals. For x_max &lt; 0.5 the boundaries become complex
+and non-simplex like. The integrals can then be extended to full simplex integrals using an appropiate indicator
+function, <code class="docutils literal notranslate"><span class="pre">get_argmax_region_char_function</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> – function to integrate over the subset of the simplex. Should accept num_classes-1 variables</p></li>
+<li><p><strong>num_classes</strong> – equals dimension of the simplex + 1</p></li>
+<li><p><strong>x_max</strong> – fixed value of largest coordinate value. defines subset of simplex</p></li>
+<li><p><strong>kwargs</strong> – passed to simplex_integral_fixed_comp</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="kyle.integrals.dirichlet_exp_value">
+<code class="sig-name descname">dirichlet_exp_value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span><span class="p">:</span> <span class="n">Callable</span></em>, <em class="sig-param"><span class="n">alpha</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>float<span class="p">]</span></span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference external" href="https://gitlab.aai.lab/tl/calibration/kyle/blob/develop/src/kyle/integrals.py#L137"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kyle.integrals.dirichlet_exp_value" title="Permalink to this definition"></a></dt>
+<dd><p>Computes expectation value of f over num_classes-1 dimensional simplex using scipy. Note scipy.dirichlet.pdf for
+n classes accepts n-1 entries as sum(x_n) = 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> – </p></li>
+<li><p><strong>alpha</strong> – the parameters of the dirichlet distribution, one for each class</p></li>
+<li><p><strong>kwargs</strong> – passed to simplex_integral</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="kyle.integrals.get_argmax_region_char_function">
+<code class="sig-name descname">get_argmax_region_char_function</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">selected_class</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#kyle.integrals.Integrand" title="kyle.integrals.Integrand">kyle.integrals.Integrand</a><a class="reference external" href="https://gitlab.aai.lab/tl/calibration/kyle/blob/develop/src/kyle/integrals.py#L153"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kyle.integrals.get_argmax_region_char_function" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the char. function for the area in which the selected class is the argmax of the input args.
+The returned function takes a variable number of floats as input. They represent the first N-1 independent
+entries of an element of a simplex in N-dimensional space (N classes).</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="evaluation/reliabilities.html" class="btn btn-neutral float-left" title="reliabilities" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="metrics.html" class="btn btn-neutral float-right" title="metrics" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
